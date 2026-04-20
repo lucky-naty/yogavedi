@@ -7,6 +7,9 @@ namespace MauticPlugin\MauticTelegramBotsBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 use Mautic\CoreBundle\Entity\FormEntity;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use MauticPlugin\MauticTelegramBotsBundle\Repository\BotRepository;
 
 class Bot extends FormEntity
 {
@@ -22,7 +25,11 @@ class Bot extends FormEntity
     private string $webhookUrl = '';
     private ?\DateTime $webhookRegisteredAt = null;
     private ?string $botUsername = null;
-    private int $subscribersCount = 0;
+
+    /**
+     * @ORM\OneToMany(targetEntity=TelegramSubscription::class, mappedBy="bot", cascade={"remove"})
+     */
+    private Collection $subscriptions;
 
     public static function loadMetadata(ORM\ClassMetadata $metadata): void
     {
@@ -42,7 +49,11 @@ class Bot extends FormEntity
         $builder->addNamedField('webhookUrl', 'string', 'webhook_url', true);
         $builder->addNullableField('webhookRegisteredAt', 'datetime', 'webhook_registered_at');
         $builder->addNullableField('botUsername', 'string', 'bot_username');
-        $builder->addField('subscribersCount', 'integer', ['columnName' => 'subscribers_count', 'default' => 0]);
+    }
+
+    public function __construct()
+    {
+        $this->subscriptions = new ArrayCollection();
     }
 
     public function getId(): ?int { return $this->id; }
@@ -66,9 +77,17 @@ class Bot extends FormEntity
     public function setWebhookRegisteredAt(?\DateTime $webhookRegisteredAt): self { $this->webhookRegisteredAt = $webhookRegisteredAt; return $this; }
     public function getBotUsername(): ?string { return $this->botUsername; }
     public function setBotUsername(?string $botUsername): self { $this->botUsername = $botUsername; return $this; }
-    public function getSubscribersCount(): int { return $this->subscribersCount; }
-    public function setSubscribersCount(int $count): self { $this->subscribersCount = $count; return $this; }
-    public function incrementSubscribersCount(): self { $this->subscribersCount++; return $this; }
+
+    /** @return Collection|TelegramSubscription[] */
+    public function getSubscriptions(): Collection { return $this->subscriptions; }
+
+    /**
+     * Динамический подсчет подписчиков через репозиторий
+     */
+    public function getRealSubscribersCount(BotRepository $repository): int
+    {
+        return $repository->countSubscribers($this->id);
+    }
 
     public function getTagsArray(): array
     {

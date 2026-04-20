@@ -15,6 +15,7 @@ use Mautic\CoreBundle\Translation\Translator;
 use Mautic\FormBundle\Helper\FormFieldHelper;
 use MauticPlugin\MauticTelegramBotsBundle\Helper\TelegramBotApiHelper;
 use MauticPlugin\MauticTelegramBotsBundle\Model\BotModel;
+use MauticPlugin\MauticTelegramBotsBundle\Repository\BotRepository;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -57,7 +58,26 @@ class BotController extends AbstractStandardFormController
 
     public function indexAction(Request $request, int $page = 1): Response
     {
-        return parent::indexStandard($request, $page);
+        /** @var BotModel $model */
+        $model = $this->getModel('telegramBots.bot');
+        /** @var BotRepository $repository */
+        $repository = $this->em->getRepository(\MauticPlugin\MauticTelegramBotsBundle\Entity\Bot::class);
+
+        // Получаем список ботов (используем стандартный метод Mautic для пагинации)
+        $bots = $model->getList($request, $page);
+
+        // Для каждого бота вычисляем реальное количество подписчиков
+        foreach ($bots as $bot) {
+            // Мы добавляем временное свойство в объект, чтобы шаблон мог его прочитать
+            $bot->dynamicSubscribersCount = $bot->getRealSubscribersCount($repository);
+        }
+
+        // Передаем данные в шаблон
+        return $this->render($this->getTemplateBase() . '/list.html.twig', [
+            'bots' => $bots,
+            'page' => $page,
+            'total' => $model->getTotal(),
+        ]);
     }
 
     public function newAction(Request $request): Response

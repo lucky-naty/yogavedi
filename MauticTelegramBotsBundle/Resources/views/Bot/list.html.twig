@@ -42,10 +42,11 @@
                                 <span class="text-success"><i class="ri-check-line"></i> Registered</span><br>
                                 <small>{{ item.webhookRegisteredAt|date('d.m.Y H:i') }}</small>
                             {% else %}
-                                <span class="text-warning"><i class="ri-alert-line"></i> Not registered</span>
+                                <span class="text-warning"><i class="ri-alert-line"></i> Not registered</span >
                             {% endif %}
                         </td>
-                        <td><span class="badge badge-info">{{ item.subscribersCount }}</span></td>
+                        {# ИСПОЛЬЗУЕМ ДИНАМИЧЕСКОЕ ПОЛЕ #}
+                        <td><span class="badge badge-info">{{ item.dynamicSubscribersCount }}</span></td>
                         <td>{% for tag in item.tagsArray %}
                                 <span class="badge badge-secondary">{{ tag }}</span>
                             {% endfor %}
@@ -91,6 +92,4 @@
         {% endif %}
     </div>
 </div>
-
-
 {% endblock %}
