@@ -1,0 +1,90 @@
+{% extends '@MauticCore/Default/content.html.twig' %}
+
+{% block mauticContent %}telegramBot{% endblock %}
+
+{% block headerTitle %}
+    {% if entity.id %}
+        {{ 'mautic.telegram.bots.edit'|trans }} — {{ entity.name }}
+    {% else %}
+        {{ 'mautic.telegram.bots.new'|trans }}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+{{ form_start(form, {'attr': {'class': 'form-horizontal'}}) }}
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">{{ 'mautic.telegram.bots.form.section.main'|trans }}</h3>
+    </div>
+    <div class="panel-body">
+        <div class="form-group">
+            {{ form_label(form.name) }}
+            {{ form_widget(form.name) }}
+        </div>
+        <div class="form-group">
+            {{ form_label(form.token) }}
+            {{ form_widget(form.token) }}
+            <small class="form-text text-muted">{{ 'mautic.telegram.bots.form.token.help'|trans }}</small>
+        </div>
+        <div class="form-check mb-3">
+            {{ form_widget(form.isPublished) }}
+            {{ form_label(form.isPublished) }}
+        </div>
+    </div>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">{{ 'mautic.telegram.bots.form.section.messages'|trans }}</h3>
+    </div>
+    <div class="panel-body">
+        <div class="form-group">
+            {{ form_label(form.welcomeMessage) }}
+            {{ form_widget(form.welcomeMessage) }}
+            <small class="form-text text-muted">{{ 'mautic.telegram.bots.form.welcome_message.help'|trans }}</small>
+        </div>
+        <div class="form-check mb-3">
+            {{ form_widget(form.askPhone) }}
+            {{ form_label(form.askPhone) }}
+        </div>
+        <div class="form-group" id="ask-phone-message-group">
+            {{ form_label(form.askPhoneMessage) }}
+            {{ form_widget(form.askPhoneMessage) }}
+        </div>
+    </div>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">{{ 'mautic.telegram.bots.form.section.tags'|trans }}</h3>
+    </div>
+    <div class="panel-body">
+        <div class="form-group">
+            {{ form_label(form.tags) }}
+            {{ form_widget(form.tags) }}
+            <small class="form-text text-muted">{{ 'mautic.telegram.bots.form.tags.help'|trans }}</small>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary">
+        <i class="ri-save-line"></i> {{ 'mautic.core.form.save'|trans }}
+    </button>
+    <a href="{{ path('mautic_telegram_bots_index') }}" class="btn btn-default">
+        {{ 'mautic.core.form.cancel'|trans }}
+    </a>
+</div>
+
+{{ form_end(form) }}
+
+<script>
+document.getElementById('{{ form.askPhone.vars.id }}').addEventListener('change', function() {
+    document.getElementById('ask-phone-message-group').style.display = this.checked ? 'block' : 'none';
+});
+// Initial state
+document.getElementById('ask-phone-message-group').style.display =
+    document.getElementById('{{ form.askPhone.vars.id }}').checked ? 'block' : 'none';
+</script>
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends '@MauticCore/Default/content.html.twig' %}
+
+{% block mauticContent %}telegramBot{% endblock %}
+
+{% block headerTitle %}{{ 'mautic.telegram.bots.menu'|trans }}{% endblock %}
+
+{% block actions %}
+    {% if permissions['plugin:mauticTelegramBots:bots:create'] %}
+        <a href="{{ path('mautic_telegram_bots_new') }}" class="btn btn-primary">
+            <i class="ri-add-line"></i> {{ 'mautic.telegram.bots.new'|trans }}
+        </a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="panel panel-default">
+    <div class="panel-body">
+        {% if bots is empty %}
+            <div class="text-center py-5">
+                <i class="ri-telegram-line" style="font-size: 4rem; color: #0088cc;"></i>
+                <h3 class="mt-3">{{ 'mautic.telegram.bots.no_bots'|trans }}</h3>
+                <p class="text-muted">{{ 'mautic.telegram.bots.no_bots.desc'|trans }}</p>
+                <a href="{{ path('mautic_telegram_bots_new') }}" class="btn btn-primary mt-2">
+                    {{ 'mautic.telegram.bots.add_first'|trans }}
+                </a>
+            </div>
+        {% else %}
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>{{ 'mautic.telegram.bots.col.name'|trans }}</th>
+                        <th>{{ 'mautic.telegram.bots.col.username'|trans }}</th>
+                        <th>{{ 'mautic.telegram.bots.col.webhook'|trans }}</th>
+                        <th>{{ 'mautic.telegram.bots.col.subscribers'|trans }}</th>
+                        <th>{{ 'mautic.telegram.bots.col.tags'|trans }}</th>
+                        <th>{{ 'mautic.core.status'|trans }}</th>
+                        <th>{{ 'mautic.core.actions'|trans }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bot in bots %}
+                    <tr>
+                        <td>
+                            <strong>{{ bot.name }}</strong>
+                            <br><small class="text-muted">{{ bot.maskedToken }}</small>
+                        </td>
+                        <td>
+                            {% if bot.botUsername %}
+                                <a href="https://t.me/{{ bot.botUsername|replace({'@': ''}) }}" target="_blank">
+                                    {{ bot.botUsername }}
+                                </a>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if bot.webhookRegisteredAt %}
+                                <span class="text-success">
+                                    <i class="ri-check-line"></i> {{ 'mautic.telegram.bots.webhook.registered'|trans }}
+                                </span>
+                                <br><small class="text-muted">{{ bot.webhookRegisteredAt|date('d.m.Y H:i') }}</small>
+                            {% else %}
+                                <span class="text-warning">
+                                    <i class="ri-alert-line"></i> {{ 'mautic.telegram.bots.webhook.not_registered'|trans }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge badge-info">{{ bot.subscribersCount }}</span>
+                        </td>
+                        <td>
+                            {% if bot.tags %}
+                                {% for tag in bot.tagsArray %}
+                                    <span class="badge badge-secondary">{{ tag }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if bot.isPublished %}
+                                <span class="label label-success">{{ 'mautic.core.form.published'|trans }}</span>
+                            {% else %}
+                                <span class="label label-danger">{{ 'mautic.core.form.unpublished'|trans }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button"
+                                    class="btn btn-info btn-register-webhook"
+                                    data-id="{{ bot.id }}"
+                                    data-url="{{ path('mautic_telegram_bots_register_webhook', {id: bot.id}) }}"
+                                    title="{{ 'mautic.telegram.bots.webhook.register'|trans }}">
+                                    <i class="ri-link"></i>
+                                </button>
+                                {% if permissions['plugin:mauticTelegramBots:bots:edit'] %}
+                                <a href="{{ path('mautic_telegram_bots_edit', {id: bot.id}) }}"
+                                   class="btn btn-default" title="{{ 'mautic.core.form.edit'|trans }}">
+                                    <i class="ri-pencil-line"></i>
+                                </a>
+                                {% endif %}
+                                {% if permissions['plugin:mauticTelegramBots:bots:delete'] %}
+                                <a href="{{ path('mautic_telegram_bots_delete', {id: bot.id}) }}"
+                                   class="btn btn-danger"
+                                   onclick="return confirm('{{ 'mautic.core.form.confirmdeletion'|trans }}')"
+                                   title="{{ 'mautic.core.form.delete'|trans }}">
+                                    <i class="ri-delete-bin-line"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.btn-register-webhook').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var url = this.dataset.url;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ri-loader-line"></i>';
+
+        fetch(url, {method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest'}})
+            .then(r => r.json())
+            .then(function(data) {
+                if (data.success) {
+                    Mautic.addInfoMessage(data.message + ' ' + (data.bot_username || ''));
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    Mautic.addDangerMessage(data.message);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="ri-link"></i>';
+                }
+            });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" datatype="plaintext" original="file.ext">
+        <body>
+            <trans-unit id="mautic.telegram.campaign.action.send_message">
+                <source>Send Telegram Message</source>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.campaign.action.send_message.desc">
+                <source>Send a message to contact via Telegram bot</source>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.chat_id_field">
+                <source>Contact field with Telegram Chat ID</source>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.chat_id_field.help">
+                <source>Alias of contact field that stores telegram_chat_id (default: telegram_chat_id)</source>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.message">
+                <source>Message text</source>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.message.help">
+                <source>Tokens: {firstname}, {email}, {phone}. HTML: &lt;b&gt;bold&lt;/b&gt;, &lt;i&gt;italic&lt;/i&gt;, &lt;a href="URL"&gt;link&lt;/a&gt;</source>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.media_type">
+                <source>Attach media</source>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.media_type.none">
+                <source>No attachment (text only)</source>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.media_type.photo">
+                <source>Photo (image)</source>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.media_type.document">
+                <source>Document or file</source>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.media_url">
+                <source>URL of image or file</source>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.media_url.help">
+                <source>Public URL to image or file. Example: https://example.com/image.jpg</source>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.buttons">
+                <source>Buttons (inline keyboard)</source>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.buttons.help">
+                <source>One button per line: Button text|https://link.com</source>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bot_token">
+                <source>Bot Token (from @BotFather)</source>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.parse_mode">
+                <source>Message formatting</source>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

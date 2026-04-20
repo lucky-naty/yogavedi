@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" target-language="ru" datatype="plaintext" original="file.ext">
+        <body>
+            <trans-unit id="mautic.telegram.bots.menu">
+                <source>Telegram Bots</source>
+                <target>Telegram боты</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.new">
+                <source>New Bot</source>
+                <target>Новый бот</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.edit">
+                <source>Edit Bot</source>
+                <target>Редактировать бота</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.no_bots">
+                <source>No bots yet</source>
+                <target>Боты ещё не добавлены</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.no_bots.desc">
+                <source>Add your first Telegram bot to start collecting subscribers</source>
+                <target>Добавьте первого Telegram бота для сбора подписчиков</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.add_first">
+                <source>Add first bot</source>
+                <target>Добавить бота</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.col.name">
+                <source>Name</source>
+                <target>Название</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.col.username">
+                <source>Bot username</source>
+                <target>Username бота</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.col.webhook">
+                <source>Webhook</source>
+                <target>Webhook</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.col.subscribers">
+                <source>Subscribers</source>
+                <target>Подписчики</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.col.tags">
+                <source>Tags</source>
+                <target>Теги</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.webhook.registered">
+                <source>Registered</source>
+                <target>Зарегистрирован</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.webhook.not_registered">
+                <source>Not registered</source>
+                <target>Не зарегистрирован</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.webhook.register">
+                <source>Register webhook</source>
+                <target>Зарегистрировать webhook</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.form.section.main">
+                <source>Bot settings</source>
+                <target>Настройки бота</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.form.section.messages">
+                <source>Messages</source>
+                <target>Сообщения</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.form.section.tags">
+                <source>Contact tags</source>
+                <target>Теги контактов</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.form.name">
+                <source>Bot name</source>
+                <target>Название бота</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.form.token">
+                <source>Bot Token</source>
+                <target>Токен бота</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.form.token.help">
+                <source>Get token from @BotFather in Telegram</source>
+                <target>Получите токен у @BotFather в Telegram</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.form.welcome_message">
+                <source>Welcome message</source>
+                <target>Приветственное сообщение</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.form.welcome_message.help">
+                <source>Use {first_name} token. HTML supported: &lt;b&gt;bold&lt;/b&gt;, &lt;i&gt;italic&lt;/i&gt;</source>
+                <target>Используйте токен {first_name}. Поддерживается HTML: &lt;b&gt;жирный&lt;/b&gt;, &lt;i&gt;курсив&lt;/i&gt;</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.form.ask_phone">
+                <source>Ask for phone number</source>
+                <target>Запрашивать номер телефона</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.form.ask_phone_message">
+                <source>Phone request message</source>
+                <target>Сообщение с запросом телефона</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.form.tags">
+                <source>Tags to add</source>
+                <target>Добавить теги</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.form.tags.help">
+                <source>Comma-separated tags to add to contacts: telegram-subscriber, bot-yogavedi</source>
+                <target>Теги через запятую, которые будут добавлены контакту: telegram-subscriber, bot-yogavedi</target>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

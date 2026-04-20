@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" target-language="ru" datatype="plaintext" original="file.ext">
+        <body>
+            <trans-unit id="mautic.telegram.campaign.action.send_message">
+                <source>Send Telegram Message</source>
+                <target>Отправить сообщение в Telegram</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.campaign.action.send_message.desc">
+                <source>Send a message to contact via Telegram bot</source>
+                <target>Отправить сообщение контакту через Telegram бота</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.chat_id_field">
+                <source>Contact field with Telegram Chat ID</source>
+                <target>Поле контакта с Telegram Chat ID</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.chat_id_field.help">
+                <source>Alias of contact field that stores telegram_chat_id</source>
+                <target>Псевдоним поля контакта, в котором хранится telegram_chat_id (по умолчанию: telegram_chat_id)</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.message">
+                <source>Message text</source>
+                <target>Текст сообщения</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.message.help">
+                <source>Tokens: {firstname}, {email}, {phone}</source>
+                <target>Токены: {firstname}, {email}, {phone}. HTML: &lt;b&gt;жирный&lt;/b&gt;, &lt;i&gt;курсив&lt;/i&gt;, &lt;a href="URL"&gt;ссылка&lt;/a&gt;</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.media_type">
+                <source>Attach media</source>
+                <target>Прикрепить медиафайл</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.media_type.none">
+                <source>No attachment</source>
+                <target>Без вложения (только текст)</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.media_type.photo">
+                <source>Photo</source>
+                <target>Фото (изображение)</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.media_type.document">
+                <source>Document</source>
+                <target>Документ или файл</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.media_url">
+                <source>URL of image or file</source>
+                <target>URL изображения или файла</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.media_url.help">
+                <source>Public URL to image or file</source>
+                <target>Публичная ссылка на изображение или файл. Пример: https://example.com/image.jpg</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.buttons">
+                <source>Buttons (inline keyboard)</source>
+                <target>Кнопки под сообщением</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.form.buttons.help">
+                <source>One button per line: Button text|https://link.com</source>
+                <target>Одна кнопка на строку: Текст кнопки|https://ссылка.com</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bot_token">
+                <source>Bot Token</source>
+                <target>Токен бота (от @BotFather)</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.parse_mode">
+                <source>Message formatting</source>
+                <target>Форматирование сообщений</target>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>
