@@ -21,11 +21,11 @@ class ContactManager
     }
 
     /**
-     * РЎРѕР·РґР°РµС‚ РёР»Рё РѕР±РЅРѕРІР»СЏРµС‚ РєРѕРЅС‚Р°РєС‚ Рё СЂРµРіРёСЃС‚СЂРёСЂСѓРµС‚ РµРіРѕ РїРѕРґРїРёСЃРєСѓ РЅР° Р±РѕС‚Р°.
+     * Р РЋР С•Р В·Р Т‘Р В°Р ВµРЎвЂљ Р С‘Р В»Р С‘ Р С•Р В±Р Р…Р С•Р Р†Р В»РЎРЏР ВµРЎвЂљ Р С”Р С•Р Р…РЎвЂљР В°Р С”РЎвЂљ Р С‘ РЎР‚Р ВµР С–Р С‘РЎРѓРЎвЂљРЎР‚Р С‘РЎР‚РЎС“Р ВµРЎвЂљ Р ВµР С–Р С• Р С—Р С•Р Т‘Р С—Р С‘РЎРѓР С”РЎС“ Р Р…Р В° Р В±Р С•РЎвЂљР В°.
      *
-     * @param array $telegramData Р”Р°РЅРЅС‹Рµ РёР· РІРµР±С…СѓРєР° (chat_id, username, etc.)
-     * @param int|null $botId ID Р±РѕС‚Р°, Рє РєРѕС‚РѕСЂРѕРјСѓ РїСЂРёРІСЏР·С‹РІР°РµС‚СЃСЏ РєРѕРЅС‚Р°РєС‚
-     * @param array $tags РўРµРіРё РґР»СЏ РєРѕРЅС‚Р°РєС‚Р°
+     * @param array $telegramData Р вЂќР В°Р Р…Р Р…РЎвЂ№Р Вµ Р С‘Р В· Р Р†Р ВµР В±РЎвЂ¦РЎС“Р С”Р В° (chat_id, username, etc.)
+     * @param int|null $botId ID Р В±Р С•РЎвЂљР В°, Р С” Р С”Р С•РЎвЂљР С•РЎР‚Р С•Р СРЎС“ Р С—РЎР‚Р С‘Р Р†РЎРЏР В·РЎвЂ№Р Р†Р В°Р ВµРЎвЂљРЎРѓРЎРЏ Р С”Р С•Р Р…РЎвЂљР В°Р С”РЎвЂљ
+     * @param array $tags Р СћР ВµР С–Р С‘ Р Т‘Р В»РЎРЏ Р С”Р С•Р Р…РЎвЂљР В°Р С”РЎвЂљР В°
      */
     public function createOrUpdate(array $telegramData, ?int $botId = null, array $tags = []): ?int
     {
@@ -44,7 +44,7 @@ class ContactManager
         $nameFields = ['firstname', 'lastname'];
         $contact = null;
 
-        // 1. РџРѕРёСЃРє РєРѕРЅС‚Р°РєС‚Р°
+        // 1. Р СџР С•Р С‘РЎРѓР С” Р С”Р С•Р Р…РЎвЂљР В°Р С”РЎвЂљР В°
         if ($chatId) {
             $contact = $this->findByChatId($chatId);
         }
@@ -62,7 +62,7 @@ class ContactManager
             }
         }
 
-        // 2. РЎРѕР·РґР°РЅРёРµ РёР»Рё РѕР±РЅРѕРІР»РµРЅРёРµ РїРѕР»РµР№ РєРѕРЅС‚Р°РєС‚Р°
+        // 2. Р РЋР С•Р В·Р Т‘Р В°Р Р…Р С‘Р Вµ Р С‘Р В»Р С‘ Р С•Р В±Р Р…Р С•Р Р†Р В»Р ВµР Р…Р С‘Р Вµ Р С—Р С•Р В»Р ВµР в„– Р С”Р С•Р Р…РЎвЂљР В°Р С”РЎвЂљР В°
         if ($contact) {
             $this->logger->info('TelegramBots: Updating contact ID ' . $contact->getId());
             foreach ($nameFields as $nameField) {
@@ -79,12 +79,12 @@ class ContactManager
 
         $this->leadModel->saveEntity($contact);
 
-        // 3. Р Р•Р“РРЎРўР РђР¦РРЇ РџРћР”РџРРЎРљР РќРђ Р‘РћРўРђ (РќРѕРІР°СЏ Р»РѕРіРёРєР°)
+        // 3. Р В Р вЂўР вЂњР ВР РЋР СћР В Р С’Р В¦Р ВР Р‡ Р СџР С›Р вЂќР СџР ВР РЋР С™Р В Р СњР С’ Р вЂР С›Р СћР С’ (Р СњР С•Р Р†Р В°РЎРЏ Р В»Р С•Р С–Р С‘Р С”Р В°)
         if ($contact && $botId && $chatId) {
             $this->registerSubscription($contact, (int)$botId, $chatId);
         }
 
-        // 4. РћР±РЅРѕРІР»РµРЅРёРµ С‚РµРіРѕРІ
+        // 4. Р С›Р В±Р Р…Р С•Р Р†Р В»Р ВµР Р…Р С‘Р Вµ РЎвЂљР ВµР С–Р С•Р Р†
         if (!empty($tags)) {
             $this->leadModel->modifyTags($contact, $tags, [], false);
             $this->leadModel->saveEntity($contact);
@@ -94,36 +94,32 @@ class ContactManager
     }
 
     /**
-     * РЎРѕР·РґР°РµС‚ РёР»Рё РѕР±РЅРѕРІР»СЏРµС‚ СЃРІСЏР·СЊ РєРѕРЅС‚Р°РєС‚Р° СЃ Р±РѕС‚РѕРј РІ С‚Р°Р±Р»РёС†Рµ РїРѕРґРїРёСЃРѕРє
+     * Р РЋР С•Р В·Р Т‘Р В°Р ВµРЎвЂљ Р С‘Р В»Р С‘ Р С•Р В±Р Р…Р С•Р Р†Р В»РЎРЏР ВµРЎвЂљ РЎРѓР Р†РЎРЏР В·РЎРЉ Р С”Р С•Р Р…РЎвЂљР В°Р С”РЎвЂљР В° РЎРѓ Р В±Р С•РЎвЂљР С•Р С Р Р† РЎвЂљР В°Р В±Р В»Р С‘РЎвЂ Р Вµ Р С—Р С•Р Т‘Р С—Р С‘РЎРѓР С•Р С”
      */
     private function registerSubscription(Lead $contact, int $botId, string $chatId): void
     {
         $repo = $this->em->getRepository(TelegramSubscription::class);
+        $bot = $this->em->getRepository(Bot::class)->find($botId);
 
-        // РС‰РµРј, РµСЃС‚СЊ Р»Рё СѓР¶Рµ С‚Р°РєР°СЏ РїРѕРґРїРёСЃРєР° (СЌС‚РѕС‚ РєРѕРЅС‚Р°РєС‚ + СЌС‚РѕС‚ Р±РѕС‚)
+        if (!$bot) {
+            $this->logger->warning("TelegramBots: Bot {$botId} not found while registering subscription for contact {$contact->getId()}");
+            return;
+        }
+
         $subscription = $repo->findOneBy([
-            'bot' => $botId,
-            'lead' => $contact->getId()
+            'bot' => $bot,
+            'lead' => $contact,
         ]);
 
         if (!$subscription) {
-            // Р•СЃР»Рё РЅРµС‚ вЂ” СЃРѕР·РґР°РµРј РЅРѕРІСѓСЋ
-            $bot = $this->em->getRepository(Bot::class)->find($botId);
-            if ($bot) {
-                $subscription = new TelegramSubscription($bot, $contact, $chatId);
-                $this->em->persist($subscription);
-                $this->logger->info("TelegramBots: New subscription created for contact {$contact->getId()} on bot {$botId}");
-            }
-        } else {
-            // Р•СЃР»Рё РµСЃС‚СЊ вЂ” РїСЂРѕСЃС‚Рѕ РѕР±РЅРѕРІР»СЏРµРј chat_id (РЅР° СЃР»СѓС‡Р°Р№ СЃРјРµРЅС‹)
-            if ($subscription->getChatId() !== $chatId) {
-                $subscription->setChatId($chatId);
-            }
+            $subscription = new TelegramSubscription($bot, $contact, $chatId);
+            $this->em->persist($subscription);
+            $this->logger->info("TelegramBots: New subscription created for contact {$contact->getId()} on bot {$botId}");
+        } elseif ($subscription->getChatId() !== $chatId) {
+            $subscription->setChatId($chatId);
         }
 
-        if ($subscription) {
-            $this->em->flush();
-        }
+        $this->em->flush();
     }
 
     private function findByChatId(string $chatId): ?Lead
