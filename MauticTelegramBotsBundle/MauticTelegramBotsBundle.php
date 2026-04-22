@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace MauticPlugin\MauticTelegramBotsBundle;
 
-use Mautic\PluginBundle\Bundle\PluginBundleBase;
+use Mautic\IntegrationsBundle\Bundle\AbstractPluginBundle;
 
-class MauticTelegramBotsBundle extends PluginBundleBase
+class MauticTelegramBotsBundle extends AbstractPluginBundle
 {
 }

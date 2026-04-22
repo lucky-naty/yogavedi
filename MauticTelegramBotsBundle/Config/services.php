@@ -12,7 +12,7 @@ return function (ContainerConfigurator $configurator): void {
         ->autoconfigure()
         ->public();
 
-    $excludes = ['Entity'];
+    $excludes = ['Entity', 'Migrations'];
 
     $services->load('MauticPlugin\\MauticTelegramBotsBundle\\', '../')
         ->exclude('../{'.implode(',', array_merge(MauticCoreExtension::DEFAULT_EXCLUDES, $excludes)).'}');

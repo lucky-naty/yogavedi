@@ -13,9 +13,9 @@ use Mautic\CoreBundle\Security\Permissions\CorePermissions;
 use Mautic\CoreBundle\Service\FlashBag;
 use Mautic\CoreBundle\Translation\Translator;
 use Mautic\FormBundle\Helper\FormFieldHelper;
+use MauticPlugin\MauticTelegramBotsBundle\Entity\BotRepository;
 use MauticPlugin\MauticTelegramBotsBundle\Helper\TelegramBotApiHelper;
 use MauticPlugin\MauticTelegramBotsBundle\Model\BotModel;
-use MauticPlugin\MauticTelegramBotsBundle\Repository\BotRepository;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -61,7 +61,7 @@ class BotController extends AbstractStandardFormController
         /** @var BotModel $model */
         $model = $this->getModel('telegramBots.bot');
         /** @var BotRepository $repository */
-        $repository = $this->em->getRepository(\MauticPlugin\MauticTelegramBotsBundle\Entity\Bot::class);
+        $repository = $model->getRepository();
 
         // Получаем список ботов (используем стандартный метод Mautic для пагинации)
         $bots = $model->getList($request, $page);
@@ -69,12 +69,13 @@ class BotController extends AbstractStandardFormController
         // Для каждого бота вычисляем реальное количество подписчиков
         foreach ($bots as $bot) {
             // Мы добавляем временное свойство в объект, чтобы шаблон мог его прочитать
-            $bot->dynamicSubscribersCount = $bot->getRealSubscribersCount($repository);
+            $bot->setDynamicSubscribersCount($bot->getRealSubscribersCount($repository));
         }
 
         // Передаем данные в шаблон
         return $this->render($this->getTemplateBase() . '/list.html.twig', [
             'bots' => $bots,
+            'items' => $bots,
             'page' => $page,
             'total' => $model->getTotal(),
         ]);

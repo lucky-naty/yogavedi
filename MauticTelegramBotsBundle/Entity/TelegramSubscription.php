@@ -37,6 +37,37 @@ class TelegramSubscription
      */
     private string $chatId;
 
+    public static function loadMetadata(ORM\ClassMetadata $metadata): void
+    {
+        $builder = new ClassMetadataBuilder($metadata);
+        $builder->setTable('telegram_subscriptions');
+        $builder->addId();
+        $builder->addNamedField('chatId', 'string', 'chat_id');
+
+        $metadata->mapManyToOne([
+            'fieldName'    => 'bot',
+            'targetEntity' => Bot::class,
+            'inversedBy'   => 'subscriptions',
+            'joinColumns'  => [[
+                'name'                 => 'bot_id',
+                'referencedColumnName' => 'id',
+                'nullable'             => false,
+                'onDelete'             => 'CASCADE',
+            ]],
+        ]);
+
+        $metadata->mapManyToOne([
+            'fieldName'    => 'lead',
+            'targetEntity' => Lead::class,
+            'joinColumns'  => [[
+                'name'                 => 'lead_id',
+                'referencedColumnName' => 'id',
+                'nullable'             => false,
+                'onDelete'             => 'CASCADE',
+            ]],
+        ]);
+    }
+
     public function __construct(Bot $bot, Lead $lead, string $chatId)
     {
         $this->bot = $bot;

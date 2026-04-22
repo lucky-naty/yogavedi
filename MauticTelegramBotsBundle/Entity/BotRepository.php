@@ -17,6 +17,16 @@ class BotRepository extends CommonRepository
         return $this->findOneBy(['token' => $token, 'isPublished' => true]);
     }
 
+    public function countSubscribers(int $botId): int
+    {
+        return (int) $this->getEntityManager()
+            ->getConnection()
+            ->fetchOne(
+                'SELECT COUNT(*) FROM telegram_subscriptions WHERE bot_id = :botId',
+                ['botId' => $botId]
+            );
+    }
+
     public function getTableAlias(): string
     {
         return 'b';

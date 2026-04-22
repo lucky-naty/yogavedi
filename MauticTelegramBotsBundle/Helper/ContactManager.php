@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
@@ -8,6 +8,8 @@ use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Model\LeadModel;
 use Psr\Log\LoggerInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use MauticPlugin\MauticTelegramBotsBundle\Entity\Bot;
+use MauticPlugin\MauticTelegramBotsBundle\Entity\TelegramSubscription;
 
 class ContactManager
 {
@@ -18,7 +20,14 @@ class ContactManager
     ) {
     }
 
-    public function createOrUpdate(array $telegramData, array $tags = []): ?int
+    /**
+     * РЎРѕР·РґР°РµС‚ РёР»Рё РѕР±РЅРѕРІР»СЏРµС‚ РєРѕРЅС‚Р°РєС‚ Рё СЂРµРіРёСЃС‚СЂРёСЂСѓРµС‚ РµРіРѕ РїРѕРґРїРёСЃРєСѓ РЅР° Р±РѕС‚Р°.
+     *
+     * @param array $telegramData Р”Р°РЅРЅС‹Рµ РёР· РІРµР±С…СѓРєР° (chat_id, username, etc.)
+     * @param int|null $botId ID Р±РѕС‚Р°, Рє РєРѕС‚РѕСЂРѕРјСѓ РїСЂРёРІСЏР·С‹РІР°РµС‚СЃСЏ РєРѕРЅС‚Р°РєС‚
+     * @param array $tags РўРµРіРё РґР»СЏ РєРѕРЅС‚Р°РєС‚Р°
+     */
+    public function createOrUpdate(array $telegramData, ?int $botId = null, array $tags = []): ?int
     {
         $chatId   = (string) ($telegramData['chat_id'] ?? '');
         $username = $telegramData['username'] ?? '';
@@ -32,37 +41,30 @@ class ContactManager
             'phone'             => $phone,
         ], fn($v) => $v !== '');
 
-        // Имя и фамилию обновляем только если у контакта их нет
         $nameFields = ['firstname', 'lastname'];
-
-        // Ищем через прямой SQL
         $contact = null;
 
+        // 1. РџРѕРёСЃРє РєРѕРЅС‚Р°РєС‚Р°
         if ($chatId) {
             $contact = $this->findByChatId($chatId);
         }
 
-        // Если пришёл телефон - ищем существующий контакт по телефону
         if ($phone) {
             $contactByPhone = $this->findByPhone($phone);
-
             if ($contactByPhone && $contact && $contactByPhone->getId() !== $contact->getId()) {
-                // Есть два разных контакта - объединяем через прямой SQL (быстро)
                 $this->logger->info('TelegramBots: Merging contacts - phone contact ' . $contactByPhone->getId() . ' wins over chat contact ' . $contact->getId());
                 $newContactId = $contact->getId();
                 $contact = $contactByPhone;
-                // Удаляем дубликат напрямую через SQL
                 $conn = $this->em->getConnection();
                 $conn->executeStatement("DELETE FROM leads WHERE id = :id", ['id' => $newContactId]);
             } elseif ($contactByPhone && !$contact) {
-                // Нашли только по телефону
                 $contact = $contactByPhone;
             }
         }
 
+        // 2. РЎРѕР·РґР°РЅРёРµ РёР»Рё РѕР±РЅРѕРІР»РµРЅРёРµ РїРѕР»РµР№ РєРѕРЅС‚Р°РєС‚Р°
         if ($contact) {
             $this->logger->info('TelegramBots: Updating contact ID ' . $contact->getId());
-            // Не перезаписываем имя/фамилию если они уже есть
             foreach ($nameFields as $nameField) {
                 if (!empty($contact->getFieldValue($nameField))) {
                     unset($fields[$nameField]);
@@ -77,12 +79,51 @@ class ContactManager
 
         $this->leadModel->saveEntity($contact);
 
+        // 3. Р Р•Р“РРЎРўР РђР¦РРЇ РџРћР”РџРРЎРљР РќРђ Р‘РћРўРђ (РќРѕРІР°СЏ Р»РѕРіРёРєР°)
+        if ($contact && $botId && $chatId) {
+            $this->registerSubscription($contact, (int)$botId, $chatId);
+        }
+
+        // 4. РћР±РЅРѕРІР»РµРЅРёРµ С‚РµРіРѕРІ
         if (!empty($tags)) {
             $this->leadModel->modifyTags($contact, $tags, [], false);
             $this->leadModel->saveEntity($contact);
         }
 
         return $contact->getId();
+    }
+
+    /**
+     * РЎРѕР·РґР°РµС‚ РёР»Рё РѕР±РЅРѕРІР»СЏРµС‚ СЃРІСЏР·СЊ РєРѕРЅС‚Р°РєС‚Р° СЃ Р±РѕС‚РѕРј РІ С‚Р°Р±Р»РёС†Рµ РїРѕРґРїРёСЃРѕРє
+     */
+    private function registerSubscription(Lead $contact, int $botId, string $chatId): void
+    {
+        $repo = $this->em->getRepository(TelegramSubscription::class);
+
+        // РС‰РµРј, РµСЃС‚СЊ Р»Рё СѓР¶Рµ С‚Р°РєР°СЏ РїРѕРґРїРёСЃРєР° (СЌС‚РѕС‚ РєРѕРЅС‚Р°РєС‚ + СЌС‚РѕС‚ Р±РѕС‚)
+        $subscription = $repo->findOneBy([
+            'bot' => $botId,
+            'lead' => $contact->getId()
+        ]);
+
+        if (!$subscription) {
+            // Р•СЃР»Рё РЅРµС‚ вЂ” СЃРѕР·РґР°РµРј РЅРѕРІСѓСЋ
+            $bot = $this->em->getRepository(Bot::class)->find($botId);
+            if ($bot) {
+                $subscription = new TelegramSubscription($bot, $contact, $chatId);
+                $this->em->persist($subscription);
+                $this->logger->info("TelegramBots: New subscription created for contact {$contact->getId()} on bot {$botId}");
+            }
+        } else {
+            // Р•СЃР»Рё РµСЃС‚СЊ вЂ” РїСЂРѕСЃС‚Рѕ РѕР±РЅРѕРІР»СЏРµРј chat_id (РЅР° СЃР»СѓС‡Р°Р№ СЃРјРµРЅС‹)
+            if ($subscription->getChatId() !== $chatId) {
+                $subscription->setChatId($chatId);
+            }
+        }
+
+        if ($subscription) {
+            $this->em->flush();
+        }
     }
 
     private function findByChatId(string $chatId): ?Lead

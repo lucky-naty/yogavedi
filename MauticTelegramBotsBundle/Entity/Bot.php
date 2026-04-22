@@ -9,7 +9,6 @@ use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 use Mautic\CoreBundle\Entity\FormEntity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use MauticPlugin\MauticTelegramBotsBundle\Repository\BotRepository;
 
 class Bot extends FormEntity
 {
@@ -25,6 +24,7 @@ class Bot extends FormEntity
     private string $webhookUrl = '';
     private ?\DateTime $webhookRegisteredAt = null;
     private ?string $botUsername = null;
+    private int $dynamicSubscribersCount = 0;
 
     /**
      * @ORM\OneToMany(targetEntity=TelegramSubscription::class, mappedBy="bot", cascade={"remove"})
@@ -41,6 +41,7 @@ class Bot extends FormEntity
         $builder->addNamedField('name', 'string', 'name');
         $builder->addNullableField('description', 'text', 'description');
         $builder->addNamedField('token', 'string', 'token');
+        $builder->addField('isPublished', 'boolean', ['columnName' => 'is_published', 'default' => true]);
         
         $builder->addNamedField('welcomeMessage', 'text', 'welcome_message', true);
         $builder->addNamedField('askPhoneMessage', 'text', 'ask_phone_message', true);
@@ -49,6 +50,13 @@ class Bot extends FormEntity
         $builder->addNamedField('webhookUrl', 'string', 'webhook_url', true);
         $builder->addNullableField('webhookRegisteredAt', 'datetime', 'webhook_registered_at');
         $builder->addNullableField('botUsername', 'string', 'bot_username');
+
+        $metadata->mapOneToMany([
+            'fieldName'    => 'subscriptions',
+            'targetEntity' => TelegramSubscription::class,
+            'mappedBy'     => 'bot',
+            'cascade'      => ['remove'],
+        ]);
     }
 
     public function __construct()
@@ -63,6 +71,9 @@ class Bot extends FormEntity
     public function setName(string $name): self { $this->name = $name; return $this; }
     public function getToken(): string { return $this->token; }
     public function setToken(string $token): self { $this->token = $token; return $this; }
+    public function isPublished(): bool { return $this->isPublished; }
+    public function getIsPublished(): bool { return $this->isPublished; }
+    public function setIsPublished(bool $isPublished): self { $this->isPublished = $isPublished; return $this; }
     public function getWelcomeMessage(): string { return $this->welcomeMessage; }
     public function setWelcomeMessage(string $welcomeMessage): self { $this->welcomeMessage = $welcomeMessage; return $this; }
     public function getAskPhoneMessage(): string { return $this->askPhoneMessage; }
@@ -80,12 +91,15 @@ class Bot extends FormEntity
 
     /** @return Collection|TelegramSubscription[] */
     public function getSubscriptions(): Collection { return $this->subscriptions; }
+    public function getDynamicSubscribersCount(): int { return $this->dynamicSubscribersCount; }
+    public function setDynamicSubscribersCount(int $count): self { $this->dynamicSubscribersCount = $count; return $this; }
 
-    /**
-     * Динамический подсчет подписчиков через репозиторий
-     */
     public function getRealSubscribersCount(BotRepository $repository): int
     {
+        if (null === $this->id) {
+            return 0;
+        }
+
         return $repository->countSubscribers($this->id);
     }
 

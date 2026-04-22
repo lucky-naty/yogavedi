@@ -5,15 +5,11 @@ declare(strict_types=1);
 return [
     'name'        => 'Telegram Bots',
     'description' => 'Manage Telegram bots and collect subscribers into Mautic contacts',
-    'version'     => '1.0.0',
+    'version'     => '1.0.3',
     'author'      => 'YogaVedi',
 
     'routes' => [
         'main' => [
-            'mautic_telegram_bots_register_webhook' => [
-                'path'       => '/telegram/webhook-register/{id}',
-                'controller' => 'MauticPlugin\MauticTelegramBotsBundle\Controller\BotController::registerWebhookAction',
-            ],
             'mautic_telegram_bots_index' => [
                 'path'       => '/telegram/bots/{page}',
                 'controller' => 'MauticPlugin\MauticTelegramBotsBundle\Controller\BotController::indexAction',
