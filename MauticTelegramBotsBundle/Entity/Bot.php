@@ -71,7 +71,7 @@ class Bot extends FormEntity
     public function setName(string $name): self { $this->name = $name; return $this; }
     public function getToken(): string { return $this->token; }
     public function setToken(string $token): self { $this->token = $token; return $this; }
-    public function isPublished(): bool { return $this->isPublished; }
+    public function isPublished($checkPublishStatus = true, $checkCategoryStatus = true): bool { return $this->isPublished; }
     public function getIsPublished(): bool { return $this->isPublished; }
     public function setIsPublished(bool $isPublished): self { $this->isPublished = $isPublished; return $this; }
     public function getWelcomeMessage(): string { return $this->welcomeMessage; }
