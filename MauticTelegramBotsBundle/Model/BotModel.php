@@ -9,9 +9,12 @@ use MauticPlugin\MauticTelegramBotsBundle\Entity\Bot;
 use MauticPlugin\MauticTelegramBotsBundle\Form\Type\BotType;
 use MauticPlugin\MauticTelegramBotsBundle\Entity\BotRepository;
 use Symfony\Component\Form\Form;
+use Symfony\Component\HttpFoundation\Request;
 
 class BotModel extends FormModel
 {
+    private int $total = 0;
+
     public function getRepository(): BotRepository
     {
         /** @var BotRepository $repo */
@@ -22,6 +25,26 @@ class BotModel extends FormModel
     public function getPermissionBase(): string
     {
         return 'plugin:mauticTelegramBots:bots';
+    }
+
+    /**
+     * @return Bot[]
+     */
+    public function getList(Request $request, int $page = 1): array
+    {
+        $limit = max(1, min(100, (int) $request->query->get('limit', 30)));
+        $page = max(1, $page);
+        $offset = ($page - 1) * $limit;
+        $repository = $this->getRepository();
+
+        $this->total = (int) $repository->count([]);
+
+        return $repository->findBy([], ['id' => 'DESC'], $limit, $offset);
+    }
+
+    public function getTotal(): int
+    {
+        return $this->total;
     }
 
     public function createForm($entity, $formFactory, $action = null, $options = []): Form
