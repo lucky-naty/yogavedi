@@ -22,7 +22,7 @@ class BotRepository extends CommonRepository
         return (int) $this->getEntityManager()
             ->getConnection()
             ->fetchOne(
-                'SELECT COUNT(DISTINCT chat_id) FROM telegram_subscriptions WHERE bot_id = :botId',
+                'SELECT COUNT(DISTINCT chat_id) FROM telegram_subscriptions WHERE bot_id = :botId AND is_active = 1',
                 ['botId' => $botId]
             );
     }

@@ -95,10 +95,10 @@ class WebhookController extends CommonController
 
         if ($bot->isAskPhone()) {
             $askText = $bot->getAskPhoneMessage() ?: 'РџРѕРґРµР»РёС‚РµСЃСЊ РЅРѕРјРµСЂРѕРј С‚РµР»РµС„РѕРЅР°:';
-            $this->apiHelper->sendMessage($bot->getToken(), $chatId, $welcomeText);
-            $this->apiHelper->sendMessage($bot->getToken(), $chatId, $askText, $this->apiHelper->buildContactKeyboard());
+            $this->sendMessage($bot, $chatId, $welcomeText);
+            $this->sendMessage($bot, $chatId, $askText, $this->apiHelper->buildContactKeyboard());
         } else {
-            $this->apiHelper->sendMessage($bot->getToken(), $chatId, $welcomeText);
+            $this->sendMessage($bot, $chatId, $welcomeText);
         }
     }
 
@@ -115,6 +115,26 @@ class WebhookController extends CommonController
             'phone'      => $phone,
         ], $bot->getId(), $bot->getTagsArray());
 
-        $this->apiHelper->sendMessage($bot->getToken(), $chatId, 'вњ… РЎРїР°СЃРёР±Рѕ! Р’Р°С€Рё РґР°РЅРЅС‹Рµ СЃРѕС…СЂР°РЅРµРЅС‹.', $this->apiHelper->removeKeyboard());
+        $this->sendMessage($bot, $chatId, 'вњ… РЎРїР°СЃРёР±Рѕ! Р’Р°С€Рё РґР°РЅРЅС‹Рµ СЃРѕС…СЂР°РЅРµРЅС‹.', $this->apiHelper->removeKeyboard());
+    }
+
+    private function sendMessage(Bot $bot, int|string $chatId, string $text, array $replyMarkup = []): array
+    {
+        $result = $this->apiHelper->sendMessage($bot->getToken(), $chatId, $text, $replyMarkup);
+
+        if ($this->isBlockedByUser($result) && null !== $bot->getId()) {
+            $this->contactManager->markSubscriptionInactive($bot->getId(), (string) $chatId);
+        }
+
+        return $result;
+    }
+
+    private function isBlockedByUser(array $telegramResult): bool
+    {
+        $description = strtolower((string) ($telegramResult['description'] ?? ''));
+
+        return false === ($telegramResult['ok'] ?? false)
+            && 403 === (int) ($telegramResult['error_code'] ?? 0)
+            && str_contains($description, 'blocked');
     }
 }

@@ -115,11 +115,36 @@ class ContactManager
             $subscription = new TelegramSubscription($bot, $contact, $chatId);
             $this->em->persist($subscription);
             $this->logger->info("TelegramBots: New subscription created for contact {$contact->getId()} on bot {$botId}");
-        } elseif ($subscription->getChatId() !== $chatId) {
-            $subscription->setChatId($chatId);
+        } else {
+            $subscription->reactivate($contact);
+            $this->logger->info("TelegramBots: Subscription reactivated for contact {$contact->getId()} on bot {$botId}");
         }
 
         $this->em->flush();
+    }
+
+    public function markSubscriptionInactive(int $botId, string $chatId): void
+    {
+        $repo = $this->em->getRepository(TelegramSubscription::class);
+        $bot = $this->em->getRepository(Bot::class)->find($botId);
+
+        if (!$bot) {
+            return;
+        }
+
+        $subscription = $repo->findOneBy([
+            'bot' => $bot,
+            'chatId' => $chatId,
+        ]);
+
+        if (!$subscription || !$subscription->isActive()) {
+            return;
+        }
+
+        $subscription->deactivate();
+        $this->em->flush();
+
+        $this->logger->info("TelegramBots: Subscription deactivated for chat {$chatId} on bot {$botId}");
     }
 
     private function findByChatId(string $chatId): ?Lead

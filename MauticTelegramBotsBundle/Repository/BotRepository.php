@@ -29,6 +29,7 @@ class BotRepository extends ServiceEntityRepository
         return (int) $qb->select('count(s.id)')
             ->from(TelegramSubscription::class, 's')
             ->where('s.bot = :botId')
+            ->andWhere('s.isActive = true')
             ->setParameter('botId', $botId)
             ->getQuery()
             ->getSingleScalarResult();

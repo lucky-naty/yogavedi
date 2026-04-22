@@ -37,12 +37,18 @@ class TelegramSubscription
      */
     private string $chatId;
 
+    private bool $isActive = true;
+
+    private ?\DateTimeInterface $unsubscribedAt = null;
+
     public static function loadMetadata(ORM\ClassMetadata $metadata): void
     {
         $builder = new ClassMetadataBuilder($metadata);
         $builder->setTable('telegram_subscriptions');
         $builder->addId();
         $builder->addNamedField('chatId', 'string', 'chat_id');
+        $builder->addNamedField('isActive', 'boolean', 'is_active');
+        $builder->addNullableField('unsubscribedAt', 'datetime', 'unsubscribed_at');
 
         $metadata->mapManyToOne([
             'fieldName'    => 'bot',
@@ -82,4 +88,24 @@ class TelegramSubscription
     public function setLead(Lead $lead): self { $this->lead = $lead; return $this; }
     public function getChatId(): string { return $this->chatId; }
     public function setChatId(string $chatId): self { $this->chatId = $chatId; return $this; }
+    public function isActive(): bool { return $this->isActive; }
+    public function setIsActive(bool $isActive): self { $this->isActive = $isActive; return $this; }
+    public function getUnsubscribedAt(): ?\DateTimeInterface { return $this->unsubscribedAt; }
+    public function setUnsubscribedAt(?\DateTimeInterface $unsubscribedAt): self { $this->unsubscribedAt = $unsubscribedAt; return $this; }
+    public function reactivate(Lead $lead): self
+    {
+        $this->lead = $lead;
+        $this->isActive = true;
+        $this->unsubscribedAt = null;
+
+        return $this;
+    }
+
+    public function deactivate(?\DateTimeInterface $unsubscribedAt = null): self
+    {
+        $this->isActive = false;
+        $this->unsubscribedAt = $unsubscribedAt ?? new \DateTimeImmutable();
+
+        return $this;
+    }
 }
