@@ -108,7 +108,7 @@ class ContactManager
 
         $subscription = $repo->findOneBy([
             'bot' => $bot,
-            'lead' => $contact,
+            'chatId' => $chatId,
         ]);
 
         if (!$subscription) {
