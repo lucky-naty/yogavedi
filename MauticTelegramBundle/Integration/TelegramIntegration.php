@@ -41,6 +41,7 @@ class TelegramIntegration extends AbstractIntegration
     {
         return [
             'bot_token'       => 'mautic.telegram.bot_token',
+            'api_base_url'    => 'mautic.telegram.api_base_url',
             'chat_id_field'   => 'mautic.telegram.chat_id_field',
             'parse_mode'      => 'mautic.telegram.parse_mode',
         ];
@@ -64,6 +65,21 @@ class TelegramIntegration extends AbstractIntegration
                     'label'    => 'mautic.telegram.bot_token',
                     'attr'     => ['class' => 'form-control', 'autocomplete' => 'off'],
                     'required' => true,
+                ]
+            );
+
+            $builder->add(
+                'api_base_url',
+                TextType::class,
+                [
+                    'label'    => 'mautic.telegram.api_base_url',
+                    'attr'     => [
+                        'class'       => 'form-control',
+                        'placeholder' => 'https://api.telegram.org',
+                    ],
+                    'data'     => $data['api_base_url'] ?? '',
+                    'required' => false,
+                    'help'     => 'mautic.telegram.api_base_url.help',
                 ]
             );
 

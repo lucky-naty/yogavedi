@@ -34,7 +34,7 @@
                             <small class="text-muted">{{ item.maskedToken }}</small></td>
                         <td>{% if item.botUsername %}
                                 <a href="https://t.me/{{ item.botUsername|replace({'@': ''}) }}" target="_blank">
-                                    {{ item.botUsername }}
+                                    @{{ item.botUsername|replace({'@': ''}) }}
                                 </a>
                             {% else %}—{% endif %}
                         </td>
@@ -45,7 +45,6 @@
                                 <span class="text-warning"><i class="ri-alert-line"></i> Not registered</span >
                             {% endif %}
                         </td>
-                        {# ИСПОЛЬЗУЕМ ДИНАМИЧЕСКОЕ ПОЛЕ #}
                         <td><span class="badge badge-info">{{ item.dynamicSubscribersCount }}</span></td>
                         <td>{% for tag in item.tagsArray %}
                                 <span class="badge badge-secondary">{{ tag }}</span>

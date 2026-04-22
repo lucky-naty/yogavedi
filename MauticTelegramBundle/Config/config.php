@@ -2,8 +2,8 @@
 declare(strict_types=1);
 return [
     'name'        => 'Telegram',
-    'description' => 'Enables sending messages via Telegram Bot API',
-    'version'     => '1.0.1',
+    'description' => 'Enables sending Telegram messages from campaigns',
+    'version'     => '1.0.5',
     'author'      => 'YogaVedi',
     'services' => [
         'other' => [
@@ -12,6 +12,7 @@ return [
                 'arguments' => [
                     'mautic.helper.integration',
                     'monolog.logger.mautic',
+                    'doctrine.orm.entity_manager',
                 ],
             ],
         ],
@@ -26,11 +27,22 @@ return [
                 ],
                 'tags' => ['kernel.event_subscriber'],
             ],
+            'mautic.telegram.timeline.subscriber' => [
+                'class'     => \MauticPlugin\MauticTelegramBundle\EventListener\TimelineSubscriber::class,
+                'arguments' => [
+                    'doctrine.orm.entity_manager',
+                    'translator',
+                ],
+                'tags' => ['kernel.event_subscriber'],
+            ],
         ],
         'forms' => [
             'mautic.telegram.form.type.send_message' => [
-                'class' => \MauticPlugin\MauticTelegramBundle\Form\Type\TelegramSendMessageType::class,
-                'tags'  => ['form.type'],
+                'class'     => \MauticPlugin\MauticTelegramBundle\Form\Type\TelegramSendMessageType::class,
+                'arguments' => [
+                    'doctrine.orm.entity_manager',
+                ],
+                'tags'      => ['form.type'],
             ],
         ],
     ],

@@ -1,117 +1,67 @@
-# MauticTelegramBundle
+# Mautic Telegram Campaign Messages
 
-Плагин для отправки сообщений через Telegram Bot API в кампаниях Mautic 7.
+Mautic 7 plugin that adds a campaign action for sending Telegram messages to contacts.
 
-## Возможности
+## Features
 
-- ✅ Отправка текстовых сообщений с HTML/Markdown форматированием
-- ✅ Отправка фото с подписью
-- ✅ Отправка документов/файлов
-- ✅ Inline кнопки (inline keyboard)
-- ✅ Токены контакта в тексте сообщения ({firstname}, {email} и др.)
-- ✅ Действие в кампании (автоматизации)
-- ✅ Русский и английский интерфейс
+- Send Telegram messages from Mautic campaigns.
+- Use a specific bot, auto-select a bot from a contact subscription, or send through all subscribed bots.
+- Insert contact field tokens such as `{contact.firstname}`, `{contact.email}`, and `{contact.mobile}`.
+- Send text, photos, documents, videos, audio, voice messages, and animations by public file URL.
+- Add simple inline buttons without writing Telegram API JSON by hand.
+- Log sent and failed Telegram messages in the contact timeline.
+- Optionally use a custom Telegram API proxy URL. By default, the official Telegram Bot API is used.
 
-## Установка
+## Requirements
 
-### 1. Скопировать плагин
+- Mautic 7.
+- PHP extensions required by Mautic and cURL.
+- A Telegram bot token from [@BotFather](https://t.me/BotFather).
+- For subscription-aware sending, install `MauticTelegramBotsBundle` as well.
+
+## Installation
+
+Copy the bundle into your Mautic `plugins` directory:
+
 ```bash
 cp -r MauticTelegramBundle /path/to/mautic/plugins/
+cd /path/to/mautic
+php bin/console mautic:plugins:reload
+php bin/console cache:clear
 ```
 
-### 2. Установить плагин
-```bash
-php bin/console mautic:plugins:install --env=prod
-# или через UI: Настройки → Плагины → Установить/Обновить
+Then open Mautic, go to plugins, enable Telegram, and save the integration settings.
+
+## Configuration
+
+The integration settings include:
+
+- `Bot Token`: Telegram bot token. This can be left empty when `MauticTelegramBotsBundle` manages the bots and the campaign action auto-selects a subscribed bot.
+- `Telegram API send URL`: optional. Leave empty to use `https://api.telegram.org`. Set this only if your installation must send Telegram requests through your own proxy.
+- `Parse mode`: message formatting mode, usually `HTML`.
+
+No project-specific proxy URL is bundled with the plugin.
+
+## Campaign Usage
+
+Add the campaign action `Send Telegram Message`.
+
+Choose how the bot should be selected:
+
+- `Auto`: use the contact's active Telegram subscriptions.
+- `Selected bot only`: send through one chosen bot.
+- `First subscribed bot only`: prevents duplicate messages when the contact follows several bots.
+- `All subscribed bots`: sends the same message through every active subscription.
+
+Use the token picker below the message field to insert contact variables into the message body.
+
+## Attachments
+
+For attachments, choose an attachment type and provide a public direct URL to the file, for example:
+
+```text
+https://example.com/photo.jpg
+https://example.com/file.pdf
 ```
 
-### 3. Очистить кеш
-```bash
-php bin/console cache:clear --env=prod
-```
-
-## Настройка
-
-### Шаг 1: Создать Telegram бота
-1. Напишите @BotFather в Telegram
-2. Создайте бота командой `/newbot`
-3. Скопируйте Bot Token
-
-### Шаг 2: Настроить плагин в Mautic
-1. Перейдите: **Настройки → Плагины → Telegram**
-2. Включите плагин
-3. Введите **Bot Token**
-4. Выберите **режим форматирования** (HTML рекомендуется)
-5. Сохраните
-
-### Шаг 3: Создать кастомное поле контакта
-1. Перейдите: **Настройки → Поля контактов**
-2. Создайте поле с alias: `telegram_chat_id`
-3. Тип: Text
-
-### Шаг 4: Заполнить chat_id контактов
-Есть два способа:
-- **Вручную**: Отредактировать контакт и вписать chat_id
-- **Через бота**: Настроить webhook бота, который при `/start` сохраняет chat_id в Mautic через API
-
-## Использование в кампаниях
-
-1. Создайте или откройте кампанию
-2. Добавьте действие **"Отправить сообщение в Telegram"**
-3. Заполните поля:
-
-### Поле "Сообщение"
-Поддерживает HTML форматирование и токены:
-```
-Привет, {firstname}!
-
-Ваш email: {email}
-
-<b>Жирный текст</b>
-<i>Курсив</i>
-<a href="https://example.com">Ссылка</a>
-```
-
-### Поле "Кнопки"
-Одна кнопка на строку в формате `Текст|URL`:
-```
-Перейти на сайт|https://yogavedi.ru
-Записаться|https://yogavedi.ru/signup
-```
-
-### Медиа
-- Выберите тип: Фото или Документ
-- Укажите публичный URL файла
-
-## Получение chat_id
-
-Когда пользователь напишет вашему боту `/start`, Telegram пришлёт update с `message.chat.id` — это и есть chat_id.
-
-Пример webhook обработчика для получения chat_id:
-```
-GET /mautic/api/contacts?search=email:user@example.com
-PATCH /mautic/api/contacts/{id}/edit
-{"telegram_chat_id": "123456789"}
-```
-
-## Структура файлов
-
-```
-MauticTelegramBundle/
-├── Config/
-│   └── config.php                    # Конфигурация плагина
-├── EventListener/
-│   └── CampaignSubscriber.php        # Обработчик действий кампании
-├── Form/
-│   └── Type/
-│       └── TelegramSendMessageType.php # Форма настройки действия
-├── Helper/
-│   └── TelegramApiHelper.php         # Работа с Telegram Bot API
-├── Integration/
-│   └── TelegramIntegration.php       # Настройки интеграции
-├── translations/
-│   ├── messages.en_US.xlf            # Английский перевод
-│   └── messages.ru_RU.xlf            # Русский перевод
-├── MauticTelegramBundle.php          # Главный класс плагина
-└── README.md                         # Документация
-```
+Telegram must be able to download the file directly.

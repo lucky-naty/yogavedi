@@ -8,14 +8,12 @@ use Psr\Log\LoggerInterface;
 
 class TelegramBotApiHelper
 {
-    private string $apiBase = 'https://round-term-e233.shamaeva-natalija.workers.dev/bot';
-
     public function __construct(
         private LoggerInterface $logger,
     ) {
     }
 
-    public function sendMessage(string $token, int|string $chatId, string $text, array $replyMarkup = []): array
+    public function sendMessage(string $token, int|string $chatId, string $text, array $replyMarkup = [], string $apiBaseUrl = ''): array
     {
         $params = [
             'chat_id'    => $chatId,
@@ -27,47 +25,48 @@ class TelegramBotApiHelper
             $params['reply_markup'] = json_encode($replyMarkup);
         }
 
-        return $this->request($token, 'sendMessage', $params);
+        return $this->request($token, 'sendMessage', $params, $apiBaseUrl);
     }
 
-    public function setWebhook(string $token, string $webhookUrl, string $secret = ''): array
+    public function setWebhook(string $token, string $webhookUrl, string $secret = '', string $apiBaseUrl = ''): array
     {
         $params = ['url' => $webhookUrl];
         if (!empty($secret)) {
             $params['secret_token'] = $secret;
         }
-        return $this->request($token, 'setWebhook', $params);
+
+        return $this->request($token, 'setWebhook', $params, $apiBaseUrl);
     }
 
-    public function deleteWebhook(string $token): array
+    public function deleteWebhook(string $token, string $apiBaseUrl = ''): array
     {
-        return $this->request($token, 'deleteWebhook', []);
+        return $this->request($token, 'deleteWebhook', [], $apiBaseUrl);
     }
 
-    public function getWebhookInfo(string $token): array
+    public function getWebhookInfo(string $token, string $apiBaseUrl = ''): array
     {
-        return $this->request($token, 'getWebhookInfo', []);
+        return $this->request($token, 'getWebhookInfo', [], $apiBaseUrl);
     }
 
-    public function getMe(string $token): array
+    public function getMe(string $token, string $apiBaseUrl = ''): array
     {
-        return $this->request($token, 'getMe', []);
+        return $this->request($token, 'getMe', [], $apiBaseUrl);
     }
 
-    public function answerCallbackQuery(string $token, string $queryId, string $text = ''): array
+    public function answerCallbackQuery(string $token, string $queryId, string $text = '', string $apiBaseUrl = ''): array
     {
         return $this->request($token, 'answerCallbackQuery', [
             'callback_query_id' => $queryId,
             'text'              => $text,
-        ]);
+        ], $apiBaseUrl);
     }
 
     public function buildContactKeyboard(): array
     {
         return [
             'keyboard' => [
-                [['text' => '📱 Поделиться номером', 'request_contact' => true]],
-                [['text' => '❌ Пропустить']],
+                [['text' => 'Share phone number', 'request_contact' => true]],
+                [['text' => 'Skip']],
             ],
             'resize_keyboard'   => true,
             'one_time_keyboard' => true,
@@ -79,9 +78,9 @@ class TelegramBotApiHelper
         return ['remove_keyboard' => true];
     }
 
-    private function request(string $token, string $method, array $params): array
+    private function request(string $token, string $method, array $params, string $apiBaseUrl = ''): array
     {
-        $url = $this->apiBase . $token . '/' . $method;
+        $url = self::buildTelegramApiUrl($apiBaseUrl, $token, $method);
 
         $ch = curl_init();
         curl_setopt_array($ch, [
@@ -89,7 +88,8 @@ class TelegramBotApiHelper
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => json_encode($params),
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_TIMEOUT        => 30,
+            CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
         ]);
@@ -112,5 +112,17 @@ class TelegramBotApiHelper
         }
 
         return $result;
+    }
+
+    public static function buildTelegramApiUrl(string $apiBaseUrl, string $token, string $method): string
+    {
+        $apiBaseUrl = trim($apiBaseUrl) ?: 'https://api.telegram.org';
+        $apiBaseUrl = rtrim($apiBaseUrl, '/');
+
+        if (!str_ends_with($apiBaseUrl, '/bot')) {
+            $apiBaseUrl .= '/bot';
+        }
+
+        return $apiBaseUrl.$token.'/'.$method;
     }
 }

@@ -65,6 +65,17 @@ class BotModel extends FormModel
 
     public function saveEntity($entity, $unlock = true): void
     {
+        if ($entity instanceof Bot && $entity->getId() && '' === trim($entity->getToken())) {
+            $existingToken = $this->em->getConnection()->fetchOne(
+                'SELECT token FROM telegram_bots WHERE id = :id',
+                ['id' => $entity->getId()]
+            );
+
+            if ($existingToken) {
+                $entity->setToken((string) $existingToken);
+            }
+        }
+
         $this->em->persist($entity);
         $this->em->flush();
     }

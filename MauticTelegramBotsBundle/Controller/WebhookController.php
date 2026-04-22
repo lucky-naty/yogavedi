@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MauticPlugin\MauticTelegramBotsBundle\Controller;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Mautic\CoreBundle\Controller\CommonController;
 use MauticPlugin\MauticTelegramBotsBundle\Entity\Bot;
 use MauticPlugin\MauticTelegramBotsBundle\Entity\BotRepository;
@@ -11,7 +12,6 @@ use MauticPlugin\MauticTelegramBotsBundle\Helper\ContactManager;
 use MauticPlugin\MauticTelegramBotsBundle\Helper\TelegramBotApiHelper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Doctrine\ORM\EntityManagerInterface;
 
 class WebhookController extends CommonController
 {
@@ -24,31 +24,24 @@ class WebhookController extends CommonController
 
     public function handleAction(Request $request, string $token): Response
     {
-        // РќР°С…РѕРґРёРј Р±РѕС‚Р° РїРѕ С‚РѕРєРµРЅСѓ
         /** @var BotRepository $repository */
         $repository = $this->em->getRepository(Bot::class);
-        $bot = $repository->findByToken($token);
+        $bot = $repository->findByWebhookSecret($token) ?? $repository->findByToken($token);
 
         if (!$bot) {
             return new Response('Not found', 404);
         }
 
-        $input  = $request->getContent();
-        $update = json_decode($input, true);
+        $update = json_decode($request->getContent(), true);
 
-        if (!$update) {
+        if (!$update || !isset($update['message'])) {
             return new Response('OK');
         }
 
-        // РЎРЅР°С‡Р°Р»Р° РІРѕР·РІСЂР°С‰Р°РµРј OK С‡С‚РѕР±С‹ Telegram РЅРµ Р¶РґР°Р»
-        if (isset($update['message'])) {
-            $message = $update['message'];
-            $botRef = $bot;
-            // РСЃРїРѕР»СЊР·СѓРµРј shutdown function РґР»СЏ РѕР±СЂР°Р±РѕС‚РєРё РїРѕСЃР»Рµ РѕС‚РІРµС‚Р° Telegram
-            register_shutdown_function(function() use ($message, $botRef) {
-                $this->handleMessage($message, $botRef);
-            });
-        }
+        $message = $update['message'];
+        register_shutdown_function(function () use ($message, $bot): void {
+            $this->handleMessage($message, $bot);
+        });
 
         return new Response('OK');
     }
@@ -74,7 +67,6 @@ class WebhookController extends CommonController
     {
         $firstName = $from['first_name'] ?? '';
 
-        // РџР•Р Р•Р”РђР•Рњ $bot->getId() РґР»СЏ СЂРµРіРёСЃС‚СЂР°С†РёРё РїРѕРґРїРёСЃРєРё!
         $this->contactManager->createOrUpdate([
             'chat_id'    => $chatId,
             'username'   => $from['username'] ?? '',
@@ -82,19 +74,15 @@ class WebhookController extends CommonController
             'last_name'  => $from['last_name'] ?? '',
         ], $bot->getId(), $bot->getTagsArray());
 
-        // Р’РјРµСЃС‚Рѕ СЃС‚Р°СЂРѕРіРѕ РёРЅРєСЂРµРјРµРЅС‚Р° РёСЃРїРѕР»СЊР·СѓРµРј СЂРµРїРѕР·РёС‚РѕСЂРёР№ РґР»СЏ РґРёРЅР°РјРёС‡РµСЃРєРѕРіРѕ РїРѕРґСЃС‡РµС‚Р°
-        // (С…РѕС‚СЏ РјС‹ СѓР¶Рµ СЂРµС€РёР»Рё, С‡С‚Рѕ РІ С€Р°Р±Р»РѕРЅРµ Р±СѓРґРµРј Р±СЂР°С‚СЊ РґРёРЅР°РјРёС‡РµСЃРєРѕРµ Р·РЅР°С‡РµРЅРёРµ,
-        // РЅРѕ РґР»СЏ РЅР°РґРµР¶РЅРѕСЃС‚Рё РјРѕР¶РµРј РѕР±РЅРѕРІРёС‚СЊ РїРѕР»Рµ, РµСЃР»Рё Р·Р°С…РѕС‚РёС‚Рµ РµРіРѕ РІРµСЂРЅСѓС‚СЊ)
-
         $welcomeText = $bot->getWelcomeMessage();
         if (empty($welcomeText)) {
-            $welcomeText = "РџСЂРёРІРµС‚, <b>{$firstName}</b>! рџ‘‹\n\nР’С‹ СѓСЃРїРµС€РЅРѕ РїРѕРґРїРёСЃР°Р»РёСЃСЊ.";
+            $welcomeText = "Hello, <b>{$firstName}</b>!\n\nYou have successfully subscribed.";
         } else {
             $welcomeText = str_replace(['{first_name}', '{firstname}'], $firstName, $welcomeText);
         }
 
         if ($bot->isAskPhone()) {
-            $askText = $bot->getAskPhoneMessage() ?: 'РџРѕРґРµР»РёС‚РµСЃСЊ РЅРѕРјРµСЂРѕРј С‚РµР»РµС„РѕРЅР°:';
+            $askText = $bot->getAskPhoneMessage() ?: 'Please share your phone number:';
             $this->sendMessage($bot, $chatId, $welcomeText);
             $this->sendMessage($bot, $chatId, $askText, $this->apiHelper->buildContactKeyboard());
         } else {
@@ -106,7 +94,6 @@ class WebhookController extends CommonController
     {
         $phone = preg_replace('/[^0-9+]/', '', $contact['phone_number'] ?? '');
 
-        // РџР•Р Р•Р”РђР•Рњ $bot->getId() РґР»СЏ СЂРµРіРёСЃС‚СЂР°С†РёРё РїРѕРґРїРёСЃРєРё!
         $this->contactManager->createOrUpdate([
             'chat_id'    => $chatId,
             'username'   => $from['username'] ?? '',
@@ -115,14 +102,14 @@ class WebhookController extends CommonController
             'phone'      => $phone,
         ], $bot->getId(), $bot->getTagsArray());
 
-        $message = $bot->getPhoneReceivedMessage() ?: 'Спасибо! Ваши данные сохранены.';
+        $message = $bot->getPhoneReceivedMessage() ?: 'Thank you! Your data has been saved.';
 
         $this->sendMessage($bot, $chatId, $message, $this->apiHelper->removeKeyboard());
     }
 
     private function sendMessage(Bot $bot, int|string $chatId, string $text, array $replyMarkup = []): array
     {
-        $result = $this->apiHelper->sendMessage($bot->getToken(), $chatId, $text, $replyMarkup);
+        $result = $this->apiHelper->sendMessage($bot->getToken(), $chatId, $text, $replyMarkup, $bot->getApiBaseUrl());
 
         if ($this->isBlockedByUser($result) && null !== $bot->getId()) {
             $this->contactManager->markSubscriptionInactive($bot->getId(), (string) $chatId);

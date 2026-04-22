@@ -62,13 +62,9 @@ class BotController extends AbstractStandardFormController
         $model = $this->getModel('telegramBots.bot');
         /** @var BotRepository $repository */
         $repository = $model->getRepository();
-
-        // Получаем список ботов (используем стандартный метод Mautic для пагинации)
         $bots = $model->getList($request, $page);
 
-        // Для каждого бота вычисляем реальное количество подписчиков
         foreach ($bots as $bot) {
-            // Мы добавляем временное свойство в объект, чтобы шаблон мог его прочитать
             $bot->setDynamicSubscribersCount($bot->getRealSubscribersCount($repository));
         }
 
@@ -115,17 +111,22 @@ class BotController extends AbstractStandardFormController
             return $this->redirect($indexUrl);
         }
 
-        $meResult = $this->apiHelper->getMe($entity->getToken());
+        $meResult = $this->apiHelper->getMe($entity->getToken(), $entity->getApiBaseUrl());
         if (!($meResult['ok'] ?? false)) {
             $this->addFlashMessage('Invalid token: ' . ($meResult['description'] ?? 'unknown'), [], 'error');
             return $this->redirect($indexUrl);
         }
 
         $botUsername = $meResult['result']['username'] ?? '';
-        $entity->setBotUsername('@' . $botUsername);
-        $webhookUrl = $request->getSchemeAndHttpHost() . '/telegram/webhook/' . $entity->getToken();
+        $entity->setBotUsername('@' . ltrim((string) $botUsername, '@'));
+
+        $webhookSecret = $entity->getWebhookSecret() ?: bin2hex(random_bytes(32));
+        $entity->setWebhookSecret($webhookSecret);
+
+        $webhookBaseUrl = $entity->getWebhookBaseUrl() ?: $request->getSchemeAndHttpHost();
+        $webhookUrl = rtrim($webhookBaseUrl, '/') . '/telegram/webhook/' . $webhookSecret;
         $entity->setWebhookUrl($webhookUrl);
-        $result = $this->apiHelper->setWebhook($entity->getToken(), $webhookUrl);
+        $result = $this->apiHelper->setWebhook($entity->getToken(), $webhookUrl, '', $entity->getApiBaseUrl());
 
         if ($result['ok'] ?? false) {
             $entity->setWebhookRegisteredAt(new \DateTime());

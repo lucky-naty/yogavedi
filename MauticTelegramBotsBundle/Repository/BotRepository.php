@@ -19,9 +19,6 @@ class BotRepository extends ServiceEntityRepository
         parent::__construct($registry, Bot::class);
     }
 
-    /**
-     * Возвращает реальное количество подписчиков для конкретного бота
-     */
     public function countSubscribers(int $botId): int
     {
         $qb = $this->getEntityManager()->createQueryBuilder();

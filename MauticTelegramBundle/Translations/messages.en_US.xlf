@@ -1,55 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
-    <file source-language="en" datatype="plaintext" original="file.ext">
+    <file source-language="en" datatype="plaintext" original="messages">
         <body>
-            <trans-unit id="mautic.telegram.campaign.action.send_message">
-                <source>Send Telegram Message</source>
-            </trans-unit>
-            <trans-unit id="mautic.telegram.campaign.action.send_message.desc">
-                <source>Send a message to contact via Telegram bot</source>
-            </trans-unit>
-            <trans-unit id="mautic.telegram.form.chat_id_field">
-                <source>Contact field with Telegram Chat ID</source>
-            </trans-unit>
-            <trans-unit id="mautic.telegram.form.chat_id_field.help">
-                <source>Alias of contact field that stores telegram_chat_id (default: telegram_chat_id)</source>
-            </trans-unit>
-            <trans-unit id="mautic.telegram.form.message">
-                <source>Message text</source>
-            </trans-unit>
-            <trans-unit id="mautic.telegram.form.message.help">
-                <source>Tokens: {firstname}, {email}, {phone}. HTML: &lt;b&gt;bold&lt;/b&gt;, &lt;i&gt;italic&lt;/i&gt;, &lt;a href="URL"&gt;link&lt;/a&gt;</source>
-            </trans-unit>
-            <trans-unit id="mautic.telegram.form.media_type">
-                <source>Attach media</source>
-            </trans-unit>
-            <trans-unit id="mautic.telegram.form.media_type.none">
-                <source>No attachment (text only)</source>
-            </trans-unit>
-            <trans-unit id="mautic.telegram.form.media_type.photo">
-                <source>Photo (image)</source>
-            </trans-unit>
-            <trans-unit id="mautic.telegram.form.media_type.document">
-                <source>Document or file</source>
-            </trans-unit>
-            <trans-unit id="mautic.telegram.form.media_url">
-                <source>URL of image or file</source>
-            </trans-unit>
-            <trans-unit id="mautic.telegram.form.media_url.help">
-                <source>Public URL to image or file. Example: https://example.com/image.jpg</source>
-            </trans-unit>
-            <trans-unit id="mautic.telegram.form.buttons">
-                <source>Buttons (inline keyboard)</source>
-            </trans-unit>
-            <trans-unit id="mautic.telegram.form.buttons.help">
-                <source>One button per line: Button text|https://link.com</source>
-            </trans-unit>
-            <trans-unit id="mautic.telegram.bot_token">
-                <source>Bot Token (from @BotFather)</source>
-            </trans-unit>
-            <trans-unit id="mautic.telegram.parse_mode">
-                <source>Message formatting</source>
-            </trans-unit>
+            <trans-unit id="mautic.telegram.campaign.action.send_message"><source>Send Telegram Message</source></trans-unit>
+            <trans-unit id="mautic.telegram.campaign.action.send_message.desc"><source>Send a message to a contact via Telegram bot</source></trans-unit>
+            <trans-unit id="mautic.campaign.telegram.send_message"><source>Send Telegram Message</source></trans-unit>
+            <trans-unit id="mautic.campaign.telegram.send_message_descr"><source>Send a Telegram message to the contact</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.bot_selection"><source>Bot</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.bot_selection.auto"><source>Auto: use contact subscription</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.bot_selection.help"><source>Choose a bot, or let Mautic pick a bot from the contact's active Telegram subscriptions.</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.send_scope"><source>Send to</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.send_scope.first_subscribed"><source>First subscribed bot only</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.send_scope.all_subscribed"><source>All subscribed bots</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.send_scope.selected_only"><source>Selected bot only</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.send_scope.help"><source>Use 'first subscribed bot' to avoid duplicate messages when a contact follows several bots.</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.message"><source>Message text</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.message.help"><source>You can use contact tokens like {contact.firstname}, {contact.email}, {contact.mobile}. Choose a token below and paste it into the message.</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.token_picker"><source>Contact variables</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.token_picker.placeholder"><source>Choose a variable</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.token_picker.help"><source>Choose a variable from the list and it will be inserted into the message text automatically.</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.media_type"><source>Attachment</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.media_type.help"><source>Choose 'Text only' for a regular message. Choose another type only when you want to attach a file by URL.</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.media_type.text"><source>Text only</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.media_type.photo"><source>Photo</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.media_type.document"><source>Document or file</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.media_type.video"><source>Video</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.media_type.audio"><source>Audio</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.media_type.voice"><source>Voice message</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.media_type.animation"><source>GIF/animation</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.media_url"><source>Attachment file URL</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.media_url.help"><source>Use this only if Attachment is not 'Text'. Enter a public direct link to the file, for example https://example.com/photo.jpg or https://example.com/file.pdf.</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.parse_mode"><source>Formatting</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.disable_notification"><source>Send silently</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.protect_content"><source>Protect content from forwarding/saving</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.disable_web_page_preview"><source>Disable link previews</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.button_1_text"><source>Button 1 text</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.button_2_text"><source>Button 2 text</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.button_3_text"><source>Button 3 text</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.button_type"><source>Button action</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.button_type.url"><source>Open link</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.button_type.callback"><source>Send callback to bot</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.button_value"><source>Link or callback value</source></trans-unit>
+            <trans-unit id="mautic.telegram.form.button_value.help"><source>For 'Open link', enter a full URL. For callback, enter a short internal value such as confirm.</source></trans-unit>
+            <trans-unit id="mautic.telegram.timeline.message"><source>Telegram message</source></trans-unit>
+            <trans-unit id="mautic.telegram.timeline.status.sent"><source>Telegram message sent</source></trans-unit>
+            <trans-unit id="mautic.telegram.timeline.status.failed"><source>Telegram message failed</source></trans-unit>
+            <trans-unit id="mautic.telegram.api_base_url"><source>Telegram API send URL</source></trans-unit>
+            <trans-unit id="mautic.telegram.api_base_url.help"><source>Leave empty to use the official Telegram Bot API. Use a custom URL only if your portal sends Telegram requests through your own proxy.</source></trans-unit>
         </body>
     </file>
 </xliff>

@@ -7,6 +7,7 @@ namespace MauticPlugin\MauticTelegramBotsBundle\Form\Type;
 use Mautic\CoreBundle\Form\Type\FormButtonsType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -25,17 +26,45 @@ class BotType extends AbstractType
             'constraints' => [new NotBlank()],
         ]);
 
-        $builder->add('token', TextType::class, [
+        /** @var Bot|null $bot */
+        $bot = $options['data'] instanceof Bot ? $options['data'] : null;
+
+        $builder->add('token', PasswordType::class, [
             'label'       => 'mautic.telegram.bots.form.token',
-            'attr'        => ['class' => 'form-control', 'autocomplete' => 'off'],
-            'constraints' => [new NotBlank()],
+            'attr'        => [
+                'class'        => 'form-control',
+                'autocomplete' => 'new-password',
+                'placeholder'  => $bot && $bot->getId() ? 'Leave empty to keep current token' : '',
+            ],
+            'constraints' => $bot && $bot->getId() ? [] : [new NotBlank()],
             'help'        => 'mautic.telegram.bots.form.token.help',
+            'required'    => !$bot || !$bot->getId(),
         ]);
 
         $builder->add('isPublished', CheckboxType::class, [
             'label'    => 'mautic.core.form.published',
             'required' => false,
             'attr'     => ['class' => 'form-check-input'],
+        ]);
+
+        $builder->add('apiBaseUrl', TextType::class, [
+            'label'    => 'mautic.telegram.bots.form.api_base_url',
+            'attr'     => [
+                'class'       => 'form-control',
+                'placeholder' => 'https://api.telegram.org',
+            ],
+            'required' => false,
+            'help'     => 'mautic.telegram.bots.form.api_base_url.help',
+        ]);
+
+        $builder->add('webhookBaseUrl', TextType::class, [
+            'label'    => 'mautic.telegram.bots.form.webhook_base_url',
+            'attr'     => [
+                'class'       => 'form-control',
+                'placeholder' => 'https://your-mautic.example.com',
+            ],
+            'required' => false,
+            'help'     => 'mautic.telegram.bots.form.webhook_base_url.help',
         ]);
 
         $builder->add('welcomeMessage', TextareaType::class, [

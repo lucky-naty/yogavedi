@@ -106,6 +106,22 @@
                 <source>Comma-separated tags to add to contacts: telegram-subscriber, bot-yogavedi</source>
                 <target>Теги через запятую, которые будут добавлены контакту: telegram-subscriber, bot-yogavedi</target>
             </trans-unit>
+            <trans-unit id="mautic.telegram.bots.form.api_base_url">
+                <source>Telegram API send URL</source>
+                <target>URL отправки Telegram API</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.form.api_base_url.help">
+                <source>Leave empty to use the official Telegram Bot API. Use a custom URL only if this bot sends Telegram requests through your own proxy.</source>
+                <target>Оставьте пустым, чтобы использовать официальный Telegram Bot API. Укажите свой URL только если этот бот отправляет запросы через ваш прокси.</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.form.webhook_base_url">
+                <source>Public webhook receive URL</source>
+                <target>Публичный URL приема webhook</target>
+            </trans-unit>
+            <trans-unit id="mautic.telegram.bots.form.webhook_base_url.help">
+                <source>Leave empty to use the current Mautic domain. Set this only if Telegram must call a public proxy or another external URL for incoming webhook updates.</source>
+                <target>Оставьте пустым, чтобы использовать текущий домен Mautic. Укажите URL только если Telegram должен отправлять входящие webhook-обновления на публичный прокси или другой внешний адрес.</target>
+            </trans-unit>
         </body>
     </file>
 </xliff>

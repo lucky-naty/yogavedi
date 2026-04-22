@@ -21,7 +21,10 @@ class Bot extends FormEntity
     private ?string $phoneReceivedMessage = '';
     private bool $askPhone = false;
     private string $tags = '';
+    private string $apiBaseUrl = '';
+    private string $webhookBaseUrl = '';
     private string $webhookUrl = '';
+    private ?string $webhookSecret = null;
     private ?\DateTime $webhookRegisteredAt = null;
     private ?string $botUsername = null;
     private int $dynamicSubscribersCount = 0;
@@ -47,7 +50,10 @@ class Bot extends FormEntity
         $builder->addNamedField('phoneReceivedMessage', 'text', 'phone_received_message', true);
         $builder->addField('askPhone', 'boolean', ['columnName' => 'ask_phone', 'default' => false]);
         $builder->addNamedField('tags', 'text', 'tags', true);
+        $builder->addNamedField('apiBaseUrl', 'string', 'api_base_url', true);
+        $builder->addNamedField('webhookBaseUrl', 'string', 'webhook_base_url', true);
         $builder->addNamedField('webhookUrl', 'string', 'webhook_url', true);
+        $builder->addNullableField('webhookSecret', 'string', 'webhook_secret');
         $builder->addNullableField('webhookRegisteredAt', 'datetime', 'webhook_registered_at');
         $builder->addNullableField('botUsername', 'string', 'bot_username');
 
@@ -81,8 +87,14 @@ class Bot extends FormEntity
     public function setAskPhone(bool $askPhone): self { $this->askPhone = $askPhone; return $this; }
     public function getTags(): string { return $this->tags; }
     public function setTags(string $tags): self { $this->tags = $tags; return $this; }
+    public function getApiBaseUrl(): string { return $this->apiBaseUrl; }
+    public function setApiBaseUrl(?string $apiBaseUrl): self { $this->apiBaseUrl = trim((string) $apiBaseUrl); return $this; }
+    public function getWebhookBaseUrl(): string { return $this->webhookBaseUrl; }
+    public function setWebhookBaseUrl(?string $webhookBaseUrl): self { $this->webhookBaseUrl = rtrim(trim((string) $webhookBaseUrl), '/'); return $this; }
     public function getWebhookUrl(): string { return $this->webhookUrl; }
     public function setWebhookUrl(string $webhookUrl): self { $this->webhookUrl = $webhookUrl; return $this; }
+    public function getWebhookSecret(): ?string { return $this->webhookSecret; }
+    public function setWebhookSecret(?string $webhookSecret): self { $this->webhookSecret = $webhookSecret; return $this; }
     public function getWebhookRegisteredAt(): ?\DateTime { return $this->webhookRegisteredAt; }
     public function setWebhookRegisteredAt(?\DateTime $webhookRegisteredAt): self { $this->webhookRegisteredAt = $webhookRegisteredAt; return $this; }
     public function getBotUsername(): ?string { return $this->botUsername; }

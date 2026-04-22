@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MauticPlugin\MauticTelegramBundle\Helper;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Mautic\PluginBundle\Helper\IntegrationHelper;
 use Psr\Log\LoggerInterface;
 
@@ -11,32 +12,139 @@ class TelegramApiHelper
 {
     private ?string $botToken = null;
     private ?string $parseMode = null;
-    private string $apiUrl = 'https://round-term-e233.shamaeva-natalija.workers.dev/bot';
+    private ?int $botId = null;
+    private string $apiBaseUrl = '';
 
     public function __construct(
         private IntegrationHelper $integrationHelper,
         private LoggerInterface $logger,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
-    private function getIntegrationSettings(): void
+    private function getIntegrationSettings(?int $botId = null, ?string $parseMode = null): void
     {
-        if ($this->botToken !== null) {
+        if ($this->botToken !== null && $this->botId === $botId) {
+            if (null !== $parseMode) {
+                $this->parseMode = $parseMode ?: null;
+            }
+            return;
+        }
+
+        if ($botId) {
+            $this->loadSettingsFromBotId($botId, $parseMode);
             return;
         }
 
         $integration = $this->integrationHelper->getIntegrationObject('Telegram');
         if (!$integration || !$integration->getIntegrationSettings()->getIsPublished()) {
-            throw new \RuntimeException('Telegram integration is not configured or disabled.');
+            $this->loadSettingsFromPublishedBot($parseMode);
+            return;
         }
 
         $keys = $integration->getDecryptedApiKeys();
         $this->botToken  = $keys['bot_token'] ?? null;
-        $this->parseMode = $keys['parse_mode'] ?? 'HTML';
+        $this->botId     = null;
+        $this->parseMode = $parseMode ?? ($keys['parse_mode'] ?? 'HTML');
+        $this->apiBaseUrl = (string) ($keys['api_base_url'] ?? '');
 
         if (empty($this->botToken)) {
-            throw new \RuntimeException('Telegram Bot Token is not set.');
+            $this->loadSettingsFromPublishedBot($parseMode);
         }
+    }
+
+    private function loadSettingsFromPublishedBot(?string $parseMode = null): void
+    {
+        $connection = $this->entityManager->getConnection();
+        $apiBaseUrlSelect = $this->telegramBotsColumnExists('api_base_url') ? ', api_base_url' : '';
+        $row = $connection->fetchAssociative(
+            sprintf('SELECT id, token%s FROM telegram_bots WHERE is_published = 1 ORDER BY id ASC LIMIT 1', $apiBaseUrlSelect)
+        );
+
+        if (!$row || empty($row['token'])) {
+            throw new \RuntimeException('Telegram integration is not configured and no published Telegram bot was found.');
+        }
+
+        $this->botId     = (int) $row['id'];
+        $this->botToken  = (string) $row['token'];
+        $this->parseMode = $parseMode ?: 'HTML';
+        $this->apiBaseUrl = (string) ($row['api_base_url'] ?? '');
+    }
+
+    private function loadSettingsFromBotId(int $botId, ?string $parseMode = null): void
+    {
+        $connection = $this->entityManager->getConnection();
+        $apiBaseUrlSelect = $this->telegramBotsColumnExists('api_base_url') ? ', api_base_url' : '';
+        $row = $connection->fetchAssociative(
+            sprintf('SELECT id, token%s FROM telegram_bots WHERE id = :id AND is_published = 1', $apiBaseUrlSelect),
+            ['id' => $botId]
+        );
+
+        if (!$row || empty($row['token'])) {
+            throw new \RuntimeException(sprintf('Published Telegram bot %d was not found.', $botId));
+        }
+
+        $this->botId     = (int) $row['id'];
+        $this->botToken  = (string) $row['token'];
+        $this->parseMode = $parseMode ?: 'HTML';
+        $this->apiBaseUrl = (string) ($row['api_base_url'] ?? '');
+    }
+
+    public function getSelectedBotId(): ?int
+    {
+        return $this->botId;
+    }
+
+    public function send(array $message): array
+    {
+        $botId = isset($message['bot_id']) && '' !== (string) $message['bot_id'] ? (int) $message['bot_id'] : null;
+        $this->getIntegrationSettings($botId, $message['parse_mode'] ?? null);
+
+        $type   = $message['type'] ?? 'text';
+        $text   = (string) ($message['text'] ?? '');
+        $params = $this->buildCommonParams($message);
+
+        return match ($type) {
+            'text'      => $this->request('sendMessage', $params + ['text' => $text]),
+            'photo'     => $this->request('sendPhoto', $params + ['photo' => $message['media_url'], 'caption' => $text]),
+            'document'  => $this->request('sendDocument', $params + ['document' => $message['media_url'], 'caption' => $text]),
+            'video'     => $this->request('sendVideo', $params + ['video' => $message['media_url'], 'caption' => $text]),
+            'audio'     => $this->request('sendAudio', $params + ['audio' => $message['media_url'], 'caption' => $text]),
+            'voice'     => $this->request('sendVoice', $params + ['voice' => $message['media_url'], 'caption' => $text]),
+            'animation' => $this->request('sendAnimation', $params + ['animation' => $message['media_url'], 'caption' => $text]),
+            default     => ['ok' => false, 'description' => sprintf('Unsupported Telegram message type: %s', $type)],
+        };
+    }
+
+    private function buildCommonParams(array $message): array
+    {
+        $params = [
+            'chat_id' => (string) $message['chat_id'],
+        ];
+
+        if (!empty($this->parseMode)) {
+            $params['parse_mode'] = $this->parseMode;
+        }
+
+        if (!empty($message['disable_notification'])) {
+            $params['disable_notification'] = true;
+        }
+
+        if (!empty($message['protect_content'])) {
+            $params['protect_content'] = true;
+        }
+
+        if (!empty($message['disable_web_page_preview']) && 'text' === ($message['type'] ?? 'text')) {
+            $params['link_preview_options'] = json_encode(['is_disabled' => true]);
+        }
+
+        if (!empty($message['buttons'])) {
+            $params['reply_markup'] = json_encode([
+                'inline_keyboard' => $this->buildInlineKeyboard($message['buttons']),
+            ]);
+        }
+
+        return $params;
     }
 
     /**
@@ -138,7 +246,7 @@ class TelegramApiHelper
      */
     private function request(string $method, array $params): array
     {
-        $url = $this->apiUrl . $this->botToken . '/' . $method;
+        $url = self::buildTelegramApiUrl($this->apiBaseUrl, (string) $this->botToken, $method);
 
         $ch = curl_init();
         curl_setopt_array($ch, [
@@ -146,7 +254,8 @@ class TelegramApiHelper
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => http_build_query($params),
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_TIMEOUT        => 30,
+            CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_SSL_VERIFYPEER => true,
         ]);
 
@@ -178,5 +287,30 @@ class TelegramApiHelper
     {
         $this->getIntegrationSettings();
         return $this->request('getMe', []);
+    }
+
+    public static function buildTelegramApiUrl(string $apiBaseUrl, string $token, string $method): string
+    {
+        $apiBaseUrl = trim($apiBaseUrl) ?: 'https://api.telegram.org';
+        $apiBaseUrl = rtrim($apiBaseUrl, '/');
+
+        if (!str_ends_with($apiBaseUrl, '/bot')) {
+            $apiBaseUrl .= '/bot';
+        }
+
+        return $apiBaseUrl.$token.'/'.$method;
+    }
+
+    private function telegramBotsColumnExists(string $columnName): bool
+    {
+        try {
+            return $this->entityManager
+                ->getConnection()
+                ->createSchemaManager()
+                ->introspectTable('telegram_bots')
+                ->hasColumn($columnName);
+        } catch (\Throwable) {
+            return false;
+        }
     }
 }

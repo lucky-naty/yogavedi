@@ -17,6 +17,11 @@ class BotRepository extends CommonRepository
         return $this->findOneBy(['token' => $token, 'isPublished' => true]);
     }
 
+    public function findByWebhookSecret(string $secret): ?Bot
+    {
+        return $this->findOneBy(['webhookSecret' => $secret, 'isPublished' => true]);
+    }
+
     public function countSubscribers(int $botId): int
     {
         return (int) $this->getEntityManager()

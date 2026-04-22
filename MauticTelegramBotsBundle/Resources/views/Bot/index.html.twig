@@ -47,7 +47,7 @@
                         <td>
                             {% if bot.botUsername %}
                                 <a href="https://t.me/{{ bot.botUsername|replace({'@': ''}) }}" target="_blank">
-                                    {{ bot.botUsername }}
+                                    @{{ bot.botUsername|replace({'@': ''}) }}
                                 </a>
                             {% else %}
                                 <span class="text-muted">—</span>
