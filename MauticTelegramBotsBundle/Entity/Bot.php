@@ -18,7 +18,7 @@ class Bot extends FormEntity
     private string $token = '';
     private string $welcomeMessage = '';
     private string $askPhoneMessage = '';
-    private string $phoneReceivedMessage = '';
+    private ?string $phoneReceivedMessage = '';
     private bool $askPhone = false;
     private string $tags = '';
     private string $webhookUrl = '';
@@ -75,8 +75,8 @@ class Bot extends FormEntity
     public function setWelcomeMessage(string $welcomeMessage): self { $this->welcomeMessage = $welcomeMessage; return $this; }
     public function getAskPhoneMessage(): string { return $this->askPhoneMessage; }
     public function setAskPhoneMessage(string $askPhoneMessage): self { $this->askPhoneMessage = $askPhoneMessage; return $this; }
-    public function getPhoneReceivedMessage(): string { return $this->phoneReceivedMessage; }
-    public function setPhoneReceivedMessage(string $phoneReceivedMessage): self { $this->phoneReceivedMessage = $phoneReceivedMessage; return $this; }
+    public function getPhoneReceivedMessage(): string { return $this->phoneReceivedMessage ?? ''; }
+    public function setPhoneReceivedMessage(?string $phoneReceivedMessage): self { $this->phoneReceivedMessage = $phoneReceivedMessage ?? ''; return $this; }
     public function isAskPhone(): bool { return $this->askPhone; }
     public function setAskPhone(bool $askPhone): self { $this->askPhone = $askPhone; return $this; }
     public function getTags(): string { return $this->tags; }

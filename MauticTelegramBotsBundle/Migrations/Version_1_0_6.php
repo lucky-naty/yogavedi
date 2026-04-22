@@ -29,5 +29,11 @@ class Version_1_0_6 extends AbstractMigration
             ALTER TABLE `{$telegramBotsTable}`
                 ADD COLUMN `phone_received_message` LONGTEXT DEFAULT NULL
         ");
+
+        $this->addSql("
+            UPDATE `{$telegramBotsTable}`
+            SET `phone_received_message` = ''
+            WHERE `phone_received_message` IS NULL
+        ");
     }
 }
