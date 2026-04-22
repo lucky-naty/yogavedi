@@ -16,7 +16,6 @@ class Bot extends FormEntity
     private string $name = '';
     private ?string $description = null;
     private string $token = '';
-    private bool $isPublished = true;
     private string $welcomeMessage = '';
     private string $askPhoneMessage = '';
     private bool $askPhone = false;
@@ -41,8 +40,7 @@ class Bot extends FormEntity
         $builder->addNamedField('name', 'string', 'name');
         $builder->addNullableField('description', 'text', 'description');
         $builder->addNamedField('token', 'string', 'token');
-        $builder->addField('isPublished', 'boolean', ['columnName' => 'is_published', 'default' => true]);
-        
+
         $builder->addNamedField('welcomeMessage', 'text', 'welcome_message', true);
         $builder->addNamedField('askPhoneMessage', 'text', 'ask_phone_message', true);
         $builder->addField('askPhone', 'boolean', ['columnName' => 'ask_phone', 'default' => false]);
@@ -71,9 +69,6 @@ class Bot extends FormEntity
     public function setName(string $name): self { $this->name = $name; return $this; }
     public function getToken(): string { return $this->token; }
     public function setToken(string $token): self { $this->token = $token; return $this; }
-    public function isPublished($checkPublishStatus = true, $checkCategoryStatus = true): bool { return $this->isPublished; }
-    public function getIsPublished(): bool { return $this->isPublished; }
-    public function setIsPublished(bool $isPublished): self { $this->isPublished = $isPublished; return $this; }
     public function getWelcomeMessage(): string { return $this->welcomeMessage; }
     public function setWelcomeMessage(string $welcomeMessage): self { $this->welcomeMessage = $welcomeMessage; return $this; }
     public function getAskPhoneMessage(): string { return $this->askPhoneMessage; }
