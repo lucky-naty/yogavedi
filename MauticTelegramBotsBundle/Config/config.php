@@ -5,7 +5,7 @@ declare(strict_types=1);
 return [
     'name'        => 'Telegram Bots',
     'description' => 'Manage Telegram bots and collect subscribers into Mautic contacts',
-    'version'     => '1.0.5',
+    'version'     => '1.0.6',
     'author'      => 'YogaVedi',
 
     'routes' => [

@@ -52,6 +52,11 @@
             {{ form_label(form.askPhoneMessage) }}
             {{ form_widget(form.askPhoneMessage) }}
         </div>
+        <div class="form-group" id="phone-received-message-group">
+            {{ form_label(form.phoneReceivedMessage) }}
+            {{ form_widget(form.phoneReceivedMessage) }}
+            <small class="form-text text-muted">{{ 'mautic.telegram.bots.form.phone_received_message.help'|trans }}</small>
+        </div>
     </div>
 </div>
 
@@ -82,9 +87,12 @@
 <script>
 document.getElementById('{{ form.askPhone.vars.id }}').addEventListener('change', function() {
     document.getElementById('ask-phone-message-group').style.display = this.checked ? 'block' : 'none';
+    document.getElementById('phone-received-message-group').style.display = this.checked ? 'block' : 'none';
 });
 // Initial state
 document.getElementById('ask-phone-message-group').style.display =
+    document.getElementById('{{ form.askPhone.vars.id }}').checked ? 'block' : 'none';
+document.getElementById('phone-received-message-group').style.display =
     document.getElementById('{{ form.askPhone.vars.id }}').checked ? 'block' : 'none';
 </script>
 {% endblock %}

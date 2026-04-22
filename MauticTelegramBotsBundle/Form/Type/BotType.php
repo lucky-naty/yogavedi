@@ -57,6 +57,13 @@ class BotType extends AbstractType
             'required' => false,
         ]);
 
+        $builder->add('phoneReceivedMessage', TextareaType::class, [
+            'label'    => 'mautic.telegram.bots.form.phone_received_message',
+            'attr'     => ['class' => 'form-control', 'rows' => 3],
+            'required' => false,
+            'help'     => 'mautic.telegram.bots.form.phone_received_message.help',
+        ]);
+
         $builder->add('tags', TextType::class, [
             'label'    => 'mautic.telegram.bots.form.tags',
             'attr'     => ['class' => 'form-control', 'placeholder' => 'telegram-subscriber, bot-name'],

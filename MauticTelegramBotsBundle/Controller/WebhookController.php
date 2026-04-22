@@ -115,7 +115,9 @@ class WebhookController extends CommonController
             'phone'      => $phone,
         ], $bot->getId(), $bot->getTagsArray());
 
-        $this->sendMessage($bot, $chatId, 'вњ… РЎРїР°СЃРёР±Рѕ! Р’Р°С€Рё РґР°РЅРЅС‹Рµ СЃРѕС…СЂР°РЅРµРЅС‹.', $this->apiHelper->removeKeyboard());
+        $message = $bot->getPhoneReceivedMessage() ?: 'Спасибо! Ваши данные сохранены.';
+
+        $this->sendMessage($bot, $chatId, $message, $this->apiHelper->removeKeyboard());
     }
 
     private function sendMessage(Bot $bot, int|string $chatId, string $text, array $replyMarkup = []): array
