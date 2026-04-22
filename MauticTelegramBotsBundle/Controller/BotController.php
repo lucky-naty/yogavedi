@@ -72,12 +72,19 @@ class BotController extends AbstractStandardFormController
             $bot->setDynamicSubscribersCount($bot->getRealSubscribersCount($repository));
         }
 
-        // Передаем данные в шаблон
-        return $this->render($this->getTemplateBase() . '/list.html.twig', [
-            'bots' => $bots,
-            'items' => $bots,
-            'page' => $page,
-            'total' => $model->getTotal(),
+        return $this->delegateView([
+            'viewParameters' => [
+                'bots'  => $bots,
+                'items' => $bots,
+                'page'  => $page,
+                'total' => $model->getTotal(),
+            ],
+            'contentTemplate' => $this->getTemplateBase() . '/list.html.twig',
+            'passthroughVars' => [
+                'activeLink'    => '#mautic_telegram_bots_index',
+                'mauticContent' => 'telegramBot',
+                'route'         => $this->generateUrl('mautic_telegram_bots_index', ['page' => $page]),
+            ],
         ]);
     }
 
