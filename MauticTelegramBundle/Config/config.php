@@ -3,7 +3,7 @@ declare(strict_types=1);
 return [
     'name'        => 'Telegram',
     'description' => 'Enables sending messages via Telegram Bot API',
-    'version'     => '1.0.0',
+    'version'     => '1.0.1',
     'author'      => 'YogaVedi',
     'services' => [
         'other' => [
@@ -22,6 +22,7 @@ return [
                     'mautic.telegram.helper.api',
                     'mautic.lead.model.lead',
                     'monolog.logger.mautic',
+                    'doctrine.orm.entity_manager',
                 ],
                 'tags' => ['kernel.event_subscriber'],
             ],

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MauticPlugin\MauticTelegramBundle\EventListener;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Mautic\CampaignBundle\CampaignEvents;
 use Mautic\CampaignBundle\Event\CampaignBuilderEvent;
 use Mautic\CampaignBundle\Event\CampaignExecutionEvent;
@@ -22,6 +23,7 @@ class CampaignSubscriber implements EventSubscriberInterface
         private TelegramApiHelper $telegramApi,
         private LeadModel $leadModel,
         private LoggerInterface $logger,
+        private EntityManagerInterface $em,
     ) {
     }
 
@@ -66,6 +68,13 @@ class CampaignSubscriber implements EventSubscriberInterface
             return;
         }
 
+        $chatId = (string) $chatId;
+
+        if (!$this->isActiveTelegramSubscriber($chatId)) {
+            $event->setResult(['failed' => true, 'reason' => 'Telegram subscriber is inactive']);
+            return;
+        }
+
         $message = $this->replaceTokens($messageTemplate, $fields);
 
         try {
@@ -83,6 +92,10 @@ class CampaignSubscriber implements EventSubscriberInterface
             if ($result['ok'] ?? false) {
                 $event->setResult(true);
             } else {
+                if ($this->isBlockedByUser($result)) {
+                    $this->markSubscriptionsInactive($chatId);
+                }
+
                 $event->setResult(['failed' => true, 'reason' => $result['description'] ?? 'Telegram error']);
             }
         } catch (\Exception $e) {
@@ -112,5 +125,54 @@ class CampaignSubscriber implements EventSubscriberInterface
             }
         }
         return $buttons;
+    }
+
+    private function isBlockedByUser(array $telegramResult): bool
+    {
+        $description = strtolower((string) ($telegramResult['description'] ?? ''));
+
+        return false === ($telegramResult['ok'] ?? false)
+            && 403 === (int) ($telegramResult['error_code'] ?? 0)
+            && str_contains($description, 'blocked');
+    }
+
+    private function isActiveTelegramSubscriber(string $chatId): bool
+    {
+        $connection = $this->em->getConnection();
+
+        if (!$this->telegramSubscriptionsTableExists()) {
+            return true;
+        }
+
+        $status = $connection->fetchOne(
+            'SELECT is_active FROM telegram_subscriptions WHERE chat_id = :chatId ORDER BY is_active DESC LIMIT 1',
+            ['chatId' => $chatId]
+        );
+
+        return false === $status || (bool) $status;
+    }
+
+    private function markSubscriptionsInactive(string $chatId): void
+    {
+        if (!$this->telegramSubscriptionsTableExists()) {
+            return;
+        }
+
+        $this->em->getConnection()->executeStatement(
+            'UPDATE telegram_subscriptions SET is_active = 0, unsubscribed_at = NOW() WHERE chat_id = :chatId AND is_active = 1',
+            ['chatId' => $chatId]
+        );
+
+        $this->logger->info('Telegram campaign subscriber deactivated after blocked response', [
+            'chat_id' => $chatId,
+        ]);
+    }
+
+    private function telegramSubscriptionsTableExists(): bool
+    {
+        return (bool) $this->em->getConnection()->fetchOne(
+            'SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :tableName',
+            ['tableName' => 'telegram_subscriptions']
+        );
     }
 }
