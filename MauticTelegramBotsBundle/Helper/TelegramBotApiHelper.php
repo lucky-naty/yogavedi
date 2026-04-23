@@ -117,6 +117,7 @@ class TelegramBotApiHelper
     public static function buildTelegramApiUrl(string $apiBaseUrl, string $token, string $method): string
     {
         $apiBaseUrl = trim($apiBaseUrl) ?: 'https://api.telegram.org';
+        self::assertAllowedApiBaseUrl($apiBaseUrl);
         $apiBaseUrl = rtrim($apiBaseUrl, '/');
 
         if (!str_ends_with($apiBaseUrl, '/bot')) {
@@ -124,5 +125,34 @@ class TelegramBotApiHelper
         }
 
         return $apiBaseUrl.$token.'/'.$method;
+    }
+
+    private static function assertAllowedApiBaseUrl(string $url): void
+    {
+        $parts = parse_url($url);
+        if (false === $parts || empty($parts['scheme']) || empty($parts['host'])) {
+            throw new \InvalidArgumentException('Invalid Telegram API URL.');
+        }
+
+        if ('https' !== strtolower((string) $parts['scheme'])) {
+            throw new \InvalidArgumentException('Telegram API URL must use HTTPS.');
+        }
+
+        if (isset($parts['user']) || isset($parts['pass'])) {
+            throw new \InvalidArgumentException('Telegram API URL must not contain credentials.');
+        }
+
+        $host = strtolower((string) $parts['host']);
+        if (in_array($host, ['localhost', '127.0.0.1', '::1'], true)) {
+            throw new \InvalidArgumentException('Telegram API URL must not target localhost.');
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP) && false === filter_var(
+            $host,
+            FILTER_VALIDATE_IP,
+            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+        )) {
+            throw new \InvalidArgumentException('Telegram API URL must not target private or reserved IP ranges.');
+        }
     }
 }

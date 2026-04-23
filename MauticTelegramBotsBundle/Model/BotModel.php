@@ -8,6 +8,7 @@ use Mautic\CoreBundle\Model\FormModel;
 use MauticPlugin\MauticTelegramBotsBundle\Entity\Bot;
 use MauticPlugin\MauticTelegramBotsBundle\Form\Type\BotType;
 use MauticPlugin\MauticTelegramBotsBundle\Entity\BotRepository;
+use MauticPlugin\MauticTelegramBotsBundle\Helper\TokenCryptoHelper;
 use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -74,6 +75,10 @@ class BotModel extends FormModel
             if ($existingToken) {
                 $entity->setToken((string) $existingToken);
             }
+        }
+
+        if ($entity instanceof Bot) {
+            $entity->setToken((new TokenCryptoHelper())->encryptIfNeeded($entity->getToken()));
         }
 
         $this->em->persist($entity);

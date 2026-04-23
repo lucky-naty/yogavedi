@@ -10,6 +10,7 @@ use MauticPlugin\MauticTelegramBotsBundle\Entity\Bot;
 use MauticPlugin\MauticTelegramBotsBundle\Entity\BotRepository;
 use MauticPlugin\MauticTelegramBotsBundle\Helper\ContactManager;
 use MauticPlugin\MauticTelegramBotsBundle\Helper\TelegramBotApiHelper;
+use MauticPlugin\MauticTelegramBotsBundle\Helper\TokenCryptoHelper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -26,7 +27,7 @@ class WebhookController extends CommonController
     {
         /** @var BotRepository $repository */
         $repository = $this->em->getRepository(Bot::class);
-        $bot = $repository->findByWebhookSecret($token) ?? $repository->findByToken($token);
+        $bot = $repository->findByWebhookSecret($token);
 
         if (!$bot) {
             return new Response('Not found', 404);
@@ -109,7 +110,8 @@ class WebhookController extends CommonController
 
     private function sendMessage(Bot $bot, int|string $chatId, string $text, array $replyMarkup = []): array
     {
-        $result = $this->apiHelper->sendMessage($bot->getToken(), $chatId, $text, $replyMarkup, $bot->getApiBaseUrl());
+        $token = (new TokenCryptoHelper())->decryptIfNeeded($bot->getToken());
+        $result = $this->apiHelper->sendMessage($token, $chatId, $text, $replyMarkup, $bot->getApiBaseUrl());
 
         if ($this->isBlockedByUser($result) && null !== $bot->getId()) {
             $this->contactManager->markSubscriptionInactive($bot->getId(), (string) $chatId);

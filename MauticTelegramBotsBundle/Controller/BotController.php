@@ -15,6 +15,7 @@ use Mautic\CoreBundle\Translation\Translator;
 use Mautic\FormBundle\Helper\FormFieldHelper;
 use MauticPlugin\MauticTelegramBotsBundle\Entity\BotRepository;
 use MauticPlugin\MauticTelegramBotsBundle\Helper\TelegramBotApiHelper;
+use MauticPlugin\MauticTelegramBotsBundle\Helper\TokenCryptoHelper;
 use MauticPlugin\MauticTelegramBotsBundle\Model\BotModel;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormFactoryInterface;
@@ -111,7 +112,20 @@ class BotController extends AbstractStandardFormController
             return $this->redirect($indexUrl);
         }
 
-        $meResult = $this->apiHelper->getMe($entity->getToken(), $entity->getApiBaseUrl());
+        $tokenCryptoHelper = new TokenCryptoHelper();
+        $token = $tokenCryptoHelper->decryptIfNeeded($entity->getToken());
+
+        if (!$this->isValidApiBaseUrl($entity->getApiBaseUrl())) {
+            $this->addFlashMessage('Invalid Telegram API URL. Only HTTPS URLs are allowed.', [], 'error');
+            return $this->redirect($indexUrl);
+        }
+
+        if (!$this->isValidWebhookBaseUrl($entity->getWebhookBaseUrl())) {
+            $this->addFlashMessage('Invalid webhook base URL. Only HTTPS URLs are allowed.', [], 'error');
+            return $this->redirect($indexUrl);
+        }
+
+        $meResult = $this->apiHelper->getMe($token, $entity->getApiBaseUrl());
         if (!($meResult['ok'] ?? false)) {
             $this->addFlashMessage('Invalid token: ' . ($meResult['description'] ?? 'unknown'), [], 'error');
             return $this->redirect($indexUrl);
@@ -126,7 +140,7 @@ class BotController extends AbstractStandardFormController
         $webhookBaseUrl = $entity->getWebhookBaseUrl() ?: $request->getSchemeAndHttpHost();
         $webhookUrl = rtrim($webhookBaseUrl, '/') . '/telegram/webhook/' . $webhookSecret;
         $entity->setWebhookUrl($webhookUrl);
-        $result = $this->apiHelper->setWebhook($entity->getToken(), $webhookUrl, '', $entity->getApiBaseUrl());
+        $result = $this->apiHelper->setWebhook($token, $webhookUrl, '', $entity->getApiBaseUrl());
 
         if ($result['ok'] ?? false) {
             $entity->setWebhookRegisteredAt(new \DateTime());
@@ -137,5 +151,46 @@ class BotController extends AbstractStandardFormController
         }
 
         return $this->redirect($indexUrl);
+    }
+
+    private function isValidApiBaseUrl(string $url): bool
+    {
+        return '' === trim($url) || $this->isAllowedExternalHttpsUrl($url);
+    }
+
+    private function isValidWebhookBaseUrl(string $url): bool
+    {
+        return '' === trim($url) || $this->isAllowedExternalHttpsUrl($url);
+    }
+
+    private function isAllowedExternalHttpsUrl(string $url): bool
+    {
+        $parts = parse_url(trim($url));
+        if (false === $parts || empty($parts['scheme']) || empty($parts['host'])) {
+            return false;
+        }
+
+        if ('https' !== strtolower((string) $parts['scheme'])) {
+            return false;
+        }
+
+        if (isset($parts['user']) || isset($parts['pass'])) {
+            return false;
+        }
+
+        $host = strtolower((string) $parts['host']);
+        if (in_array($host, ['localhost', '127.0.0.1', '::1'], true)) {
+            return false;
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            return false === filter_var(
+                $host,
+                FILTER_VALIDATE_IP,
+                FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+            );
+        }
+
+        return true;
     }
 }

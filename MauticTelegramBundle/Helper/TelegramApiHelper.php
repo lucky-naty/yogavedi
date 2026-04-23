@@ -6,6 +6,7 @@ namespace MauticPlugin\MauticTelegramBundle\Helper;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Mautic\PluginBundle\Helper\IntegrationHelper;
+use MauticPlugin\MauticTelegramBotsBundle\Helper\TokenCryptoHelper;
 use Psr\Log\LoggerInterface;
 
 class TelegramApiHelper
@@ -14,12 +15,14 @@ class TelegramApiHelper
     private ?string $parseMode = null;
     private ?int $botId = null;
     private string $apiBaseUrl = '';
+    private TokenCryptoHelper $tokenCryptoHelper;
 
     public function __construct(
         private IntegrationHelper $integrationHelper,
         private LoggerInterface $logger,
         private EntityManagerInterface $entityManager,
     ) {
+        $this->tokenCryptoHelper = new TokenCryptoHelper();
     }
 
     private function getIntegrationSettings(?int $botId = null, ?string $parseMode = null): void
@@ -66,7 +69,7 @@ class TelegramApiHelper
         }
 
         $this->botId     = (int) $row['id'];
-        $this->botToken  = (string) $row['token'];
+        $this->botToken  = $this->tokenCryptoHelper->decryptIfNeeded((string) $row['token']);
         $this->parseMode = $parseMode ?: 'HTML';
         $this->apiBaseUrl = (string) ($row['api_base_url'] ?? '');
     }
@@ -85,7 +88,7 @@ class TelegramApiHelper
         }
 
         $this->botId     = (int) $row['id'];
-        $this->botToken  = (string) $row['token'];
+        $this->botToken  = $this->tokenCryptoHelper->decryptIfNeeded((string) $row['token']);
         $this->parseMode = $parseMode ?: 'HTML';
         $this->apiBaseUrl = (string) ($row['api_base_url'] ?? '');
     }
@@ -292,6 +295,7 @@ class TelegramApiHelper
     public static function buildTelegramApiUrl(string $apiBaseUrl, string $token, string $method): string
     {
         $apiBaseUrl = trim($apiBaseUrl) ?: 'https://api.telegram.org';
+        self::assertAllowedApiBaseUrl($apiBaseUrl);
         $apiBaseUrl = rtrim($apiBaseUrl, '/');
 
         if (!str_ends_with($apiBaseUrl, '/bot')) {
@@ -299,6 +303,35 @@ class TelegramApiHelper
         }
 
         return $apiBaseUrl.$token.'/'.$method;
+    }
+
+    private static function assertAllowedApiBaseUrl(string $url): void
+    {
+        $parts = parse_url($url);
+        if (false === $parts || empty($parts['scheme']) || empty($parts['host'])) {
+            throw new \InvalidArgumentException('Invalid Telegram API URL.');
+        }
+
+        if ('https' !== strtolower((string) $parts['scheme'])) {
+            throw new \InvalidArgumentException('Telegram API URL must use HTTPS.');
+        }
+
+        if (isset($parts['user']) || isset($parts['pass'])) {
+            throw new \InvalidArgumentException('Telegram API URL must not contain credentials.');
+        }
+
+        $host = strtolower((string) $parts['host']);
+        if (in_array($host, ['localhost', '127.0.0.1', '::1'], true)) {
+            throw new \InvalidArgumentException('Telegram API URL must not target localhost.');
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP) && false === filter_var(
+            $host,
+            FILTER_VALIDATE_IP,
+            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+        )) {
+            throw new \InvalidArgumentException('Telegram API URL must not target private or reserved IP ranges.');
+        }
     }
 
     private function telegramBotsColumnExists(string $columnName): bool

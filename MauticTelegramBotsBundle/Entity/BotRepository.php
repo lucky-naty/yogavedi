@@ -12,11 +12,6 @@ use MauticPlugin\MauticTelegramBotsBundle\Entity\Bot;
  */
 class BotRepository extends CommonRepository
 {
-    public function findByToken(string $token): ?Bot
-    {
-        return $this->findOneBy(['token' => $token, 'isPublished' => true]);
-    }
-
     public function findByWebhookSecret(string $secret): ?Bot
     {
         return $this->findOneBy(['webhookSecret' => $secret, 'isPublished' => true]);
