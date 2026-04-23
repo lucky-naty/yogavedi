@@ -1,0 +1,81 @@
+{% extends '@MauticCore/Default/content.html.twig' %}
+
+{% block mauticContent %}maxBot{% endblock %}
+
+{% block headerTitle %}
+    {% if entity.id %}
+        {{ 'mautic.max.bots.edit'|trans }} - {{ entity.name }}
+    {% else %}
+        {{ 'mautic.max.bots.new'|trans }}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+{{ form_start(form, {'attr': {'class': 'form-horizontal', 'autocomplete': 'off'}}) }}
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">{{ 'mautic.max.bots.form.section.main'|trans }}</h3>
+    </div>
+    <div class="panel-body">
+        {{ form_row(form.name) }}
+        {{ form_row(form.token) }}
+        <div class="row">
+            <div class="col-md-6">{{ form_row(form.isPublished) }}</div>
+            <div class="col-md-6">{{ form_row(form.isActive) }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">{{ 'mautic.max.bots.form.section.messages'|trans }}</h3>
+    </div>
+    <div class="panel-body">
+        {{ form_row(form.welcomeMessage) }}
+        {{ form_row(form.requestPhoneAfterSubscribe) }}
+
+        <div id="max-phone-fields">
+            {{ form_row(form.phoneRequestMessage) }}
+            {{ form_row(form.contactSuccessMessage) }}
+        </div>
+    </div>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">{{ 'mautic.max.bots.form.section.integration'|trans }}</h3>
+    </div>
+    <div class="panel-body">
+        {{ form_row(form.apiBaseUrl) }}
+        {{ form_row(form.webhookBaseUrl) }}
+        {% if entity.webhookSecret %}
+            <div class="alert alert-info">
+                <strong>{{ 'mautic.max.bots.form.webhook_secret'|trans }}:</strong>
+                <code>{{ entity.webhookSecret }}</code>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{{ form_widget(form.buttons) }}
+{{ form_end(form) }}
+
+<script>
+(function () {
+    var toggle = document.getElementById('{{ form.requestPhoneAfterSubscribe.vars.id }}');
+    var phoneFields = document.getElementById('max-phone-fields');
+
+    if (!toggle || !phoneFields) {
+        return;
+    }
+
+    function syncPhoneFields() {
+        phoneFields.style.display = toggle.checked ? 'block' : 'none';
+    }
+
+    toggle.addEventListener('change', syncPhoneFields);
+    syncPhoneFields();
+})();
+</script>
+{% endblock %}

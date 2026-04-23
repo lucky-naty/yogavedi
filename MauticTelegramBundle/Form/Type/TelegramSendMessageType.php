@@ -24,19 +24,6 @@ class TelegramSendMessageType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder->add(
-            'bot_selection',
-            ChoiceType::class,
-            [
-                'label'    => 'mautic.telegram.form.bot_selection',
-                'choices'  => $this->getBotChoices(),
-                'data'     => $options['data']['bot_selection'] ?? $this->legacyBotSelection($options['data'] ?? []),
-                'required' => false,
-                'attr'     => ['class' => 'form-control'],
-                'help'     => 'mautic.telegram.form.bot_selection.help',
-            ]
-        );
-
-        $builder->add(
             'send_scope',
             ChoiceType::class,
             [
@@ -48,8 +35,22 @@ class TelegramSendMessageType extends AbstractType
                 ],
                 'data'     => $options['data']['send_scope'] ?? 'first_subscribed',
                 'required' => false,
-                'attr'     => ['class' => 'form-control'],
+                'attr'     => ['class' => 'form-control telegram-send-scope'],
                 'help'     => 'mautic.telegram.form.send_scope.help',
+            ]
+        );
+
+        $builder->add(
+            'bot_selection',
+            ChoiceType::class,
+            [
+                'label'    => 'mautic.telegram.form.bot_selection',
+                'choices'  => $this->getBotChoices(),
+                'data'     => $this->normalizeBotSelection($options['data'] ?? []),
+                'required' => false,
+                'placeholder' => 'mautic.telegram.form.bot_selection.placeholder',
+                'attr'     => ['class' => 'form-control telegram-bot-selection'],
+                'help'     => 'mautic.telegram.form.bot_selection.help',
             ]
         );
 
@@ -277,9 +278,7 @@ class TelegramSendMessageType extends AbstractType
 
     private function getBotChoices(): array
     {
-        $choices = [
-            'mautic.telegram.form.bot_selection.auto' => 'auto',
-        ];
+        $choices = [];
 
         try {
             $bots = $this->entityManager->getConnection()->fetchAllAssociative(
@@ -336,8 +335,14 @@ class TelegramSendMessageType extends AbstractType
         ];
     }
 
-    private function legacyBotSelection(array $data): string
+    private function normalizeBotSelection(array $data): ?string
     {
-        return isset($data['bot_id']) && '' !== (string) $data['bot_id'] ? (string) $data['bot_id'] : 'auto';
+        $selection = (string) ($data['bot_selection'] ?? ($data['bot_id'] ?? ''));
+
+        if ('' === $selection || 'auto' === $selection) {
+            return null;
+        }
+
+        return $selection;
     }
 }

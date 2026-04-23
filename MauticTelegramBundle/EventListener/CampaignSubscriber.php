@@ -216,8 +216,10 @@ class CampaignSubscriber implements EventSubscriberInterface
         }
 
         $scope = (string) ($config['send_scope'] ?? 'first_subscribed');
-        $botSelection = (string) ($config['bot_selection'] ?? ($config['bot_id'] ?? 'auto'));
-        $selectedBotId = 'auto' !== $botSelection && '' !== $botSelection ? (int) $botSelection : null;
+        $botSelection = (string) ($config['bot_selection'] ?? ($config['bot_id'] ?? ''));
+        $selectedBotId = 'selected_only' === $scope && '' !== $botSelection && 'auto' !== $botSelection
+            ? (int) $botSelection
+            : null;
 
         if ('selected_only' === $scope && null === $selectedBotId) {
             return [];
@@ -229,7 +231,7 @@ class CampaignSubscriber implements EventSubscriberInterface
             INNER JOIN telegram_bots b ON b.id = s.bot_id
             WHERE s.lead_id = :leadId AND s.is_active = 1 AND b.is_published = 1';
 
-        if (null !== $selectedBotId && 'all_subscribed' !== $scope) {
+        if (null !== $selectedBotId) {
             $sql .= ' AND s.bot_id = :botId';
             $params['botId'] = $selectedBotId;
         }
@@ -256,7 +258,7 @@ class CampaignSubscriber implements EventSubscriberInterface
             INNER JOIN telegram_bots b ON b.id = s.bot_id
             WHERE s.chat_id = :chatId AND s.is_active = 1 AND b.is_published = 1';
 
-        if (null !== $selectedBotId && 'all_subscribed' !== $scope) {
+        if (null !== $selectedBotId) {
             $sql .= ' AND s.bot_id = :botId';
             $params['botId'] = $selectedBotId;
         }

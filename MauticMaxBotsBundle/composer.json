@@ -1,0 +1,11 @@
+{
+  "name": "yogavedi/mautic-max-bots-bundle",
+  "description": "MAX bots integration for Mautic",
+  "type": "mautic-plugin",
+  "license": "proprietary",
+  "autoload": {
+    "psr-4": {
+      "MauticPlugin\\MauticMaxBotsBundle\\": ""
+    }
+  }
+}

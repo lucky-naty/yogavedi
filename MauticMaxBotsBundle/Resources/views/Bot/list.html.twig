@@ -1,0 +1,109 @@
+{% extends '@MauticCore/Default/content.html.twig' %}
+
+{% block mauticContent %}maxBot{% endblock %}
+
+{% block headerTitle %}{{ 'mautic.max.bots.menu'|trans }}{% endblock %}
+
+{% block actions %}
+    <a href="{{ path('mautic_max_bots_action', {'objectAction': 'new'}) }}" class="btn btn-primary">
+        <i class="ri-add-line"></i> {{ 'mautic.max.bots.list.new'|trans }}
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="panel panel-default">
+    <div class="panel-body">
+        {% if items is not empty %}
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>{{ 'mautic.max.bots.list.name'|trans }}</th>
+                        <th>{{ 'mautic.max.bots.list.username'|trans }}</th>
+                        <th>{{ 'mautic.max.bots.list.subscribers'|trans }}</th>
+                        <th>{{ 'mautic.max.bots.list.webhook'|trans }}</th>
+                        <th>{{ 'mautic.max.bots.list.status'|trans }}</th>
+                        <th class="text-right">{{ 'mautic.core.form.actions'|trans }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                        {% set subscribers = subscriberCounts[item.id]|default(0) %}
+                        <tr>
+                            <td>
+                                <strong>{{ item.name }}</strong>
+                                {% if item.displayName %}
+                                    <br><small class="text-muted">{{ item.displayName }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.username %}
+                                    @{{ item.username|replace({'@': ''}) }}
+                                {% else %}
+                                    <span class="text-muted">{{ 'mautic.max.bots.list.not_connected'|trans }}</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="label label-info">{{ subscribers }}</span></td>
+                            <td>
+                                {% if item.webhookStatus == 'registered' %}
+                                    <span class="text-success">
+                                        <i class="ri-check-line"></i> {{ 'mautic.max.bots.list.webhook_registered'|trans }}
+                                    </span>
+                                    {% if item.lastWebhookSyncedAt %}
+                                        <br><small class="text-muted">{{ item.lastWebhookSyncedAt|date('d.m.Y H:i') }}</small>
+                                    {% endif %}
+                                {% elseif item.webhookStatus == 'error' %}
+                                    <span class="text-danger">
+                                        <i class="ri-alert-line"></i> {{ 'mautic.max.bots.list.webhook_error'|trans }}
+                                    </span>
+                                    {% if item.lastWebhookError %}
+                                        <br><small class="text-muted">{{ item.lastWebhookError }}</small>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">{{ 'mautic.max.bots.list.webhook_idle'|trans }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.isPublished and item.isActive %}
+                                    <span class="label label-success">{{ 'mautic.max.bots.list.active'|trans }}</span>
+                                {% elseif item.isPublished %}
+                                    <span class="label label-warning">{{ 'mautic.max.bots.list.paused'|trans }}</span>
+                                {% else %}
+                                    <span class="label label-default">{{ 'mautic.max.bots.list.draft'|trans }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-right">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ path('mautic_max_bots_register_webhook', {'id': item.id}) }}"
+                                       class="btn btn-default"
+                                       title="{{ 'mautic.max.bots.list.register_webhook'|trans }}">
+                                        <i class="ri-link"></i>
+                                    </a>
+                                    <a href="{{ path('mautic_max_bots_action', {'objectAction': 'edit', 'objectId': item.id}) }}"
+                                       class="btn btn-default"
+                                       title="{{ 'mautic.core.form.edit'|trans }}">
+                                        <i class="ri-pencil-line"></i>
+                                    </a>
+                                    <a href="{{ path('mautic_max_bots_action', {'objectAction': 'delete', 'objectId': item.id}) }}"
+                                       class="btn btn-danger"
+                                       title="{{ 'mautic.core.form.delete'|trans }}"
+                                       onclick="return confirm('{{ 'mautic.max.bots.list.delete_confirm'|trans }}');">
+                                        <i class="ri-delete-bin-line"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="text-center py-5">
+                <h3>{{ 'mautic.max.bots.empty.title'|trans }}</h3>
+                <p class="text-muted">{{ 'mautic.max.bots.empty.description'|trans }}</p>
+                <a href="{{ path('mautic_max_bots_action', {'objectAction': 'new'}) }}" class="btn btn-primary">
+                    {{ 'mautic.max.bots.empty.cta'|trans }}
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

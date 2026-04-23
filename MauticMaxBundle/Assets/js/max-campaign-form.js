@@ -12,18 +12,23 @@
         textarea.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
-    function initTelegramTokenPicker() {
-        var picker = document.querySelector('.telegram-token-picker');
-        if (!picker || picker.dataset.telegramTokenPickerReady === '1') {
-            return;
+    function closestFieldContainer(element) {
+        if (!element) {
+            return null;
         }
 
+        return element.closest('.form-group, .choice-wrapper, .form-control-wrapper, .panel-body > div, .col-md-12, .col-xs-12') || element.parentElement;
+    }
+
+    function initMaxTokenPicker() {
+        var picker = document.querySelector('.max-token-picker');
         var message = document.querySelector('textarea[name$="[message]"]');
-        if (!message) {
+
+        if (!picker || !message || picker.dataset.maxTokenPickerReady === '1') {
             return;
         }
 
-        picker.dataset.telegramTokenPickerReady = '1';
+        picker.dataset.maxTokenPickerReady = '1';
         picker.setAttribute('autocomplete', 'off');
 
         if (window.jQuery && jQuery.fn && jQuery.fn.select2) {
@@ -55,19 +60,11 @@
         });
     }
 
-    function closestFieldContainer(element) {
-        if (!element) {
-            return null;
-        }
+    function initMaxBotSelectionVisibility() {
+        var scope = document.querySelector('.max-send-scope');
+        var botSelection = document.querySelector('.max-bot-selection');
 
-        return element.closest('.form-group, .choice-wrapper, .form-control-wrapper, .panel-body > div, .col-md-12, .col-xs-12') || element.parentElement;
-    }
-
-    function initTelegramBotSelectionVisibility() {
-        var scope = document.querySelector('.telegram-send-scope');
-        var botSelection = document.querySelector('.telegram-bot-selection');
-
-        if (!scope || !botSelection || botSelection.dataset.telegramBotVisibilityReady === '1') {
+        if (!scope || !botSelection || botSelection.dataset.maxBotVisibilityReady === '1') {
             return;
         }
 
@@ -76,7 +73,7 @@
             return;
         }
 
-        botSelection.dataset.telegramBotVisibilityReady = '1';
+        botSelection.dataset.maxBotVisibilityReady = '1';
 
         function syncVisibility() {
             container.style.display = scope.value === 'selected_only' ? '' : 'none';
@@ -94,10 +91,10 @@
         syncVisibility();
     }
 
-    document.addEventListener('DOMContentLoaded', initTelegramTokenPicker);
-    document.addEventListener('DOMContentLoaded', initTelegramBotSelectionVisibility);
-    document.addEventListener('mauticPageLoaded', initTelegramTokenPicker);
-    document.addEventListener('mauticPageLoaded', initTelegramBotSelectionVisibility);
-    setTimeout(initTelegramTokenPicker, 500);
-    setTimeout(initTelegramBotSelectionVisibility, 500);
+    document.addEventListener('DOMContentLoaded', initMaxTokenPicker);
+    document.addEventListener('DOMContentLoaded', initMaxBotSelectionVisibility);
+    document.addEventListener('mauticPageLoaded', initMaxTokenPicker);
+    document.addEventListener('mauticPageLoaded', initMaxBotSelectionVisibility);
+    setTimeout(initMaxTokenPicker, 500);
+    setTimeout(initMaxBotSelectionVisibility, 500);
 })();
